@@ -1,0 +1,40 @@
+# Environment variables — NEVER commit this
+.env
+
+# Go binaries
+/cmd-server
+*.exe
+*.out
+
+# Air tmp directory
+tmp/
+
+# Go build cache
+vendor/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.pyo
+model_service/__pycache__/
+model_service/*.pyc
+
+# Model files — must be placed manually by the developer
+model_service/model/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Frontend
+frontend/.env
+frontend/node_modules/
+frontend/dist/
