@@ -18,6 +18,7 @@ import { ClerkTokenSetter } from './components/common/ClerkTokenSetter';
 import { Layout } from './components/common/Layout';
 import { LoginPage } from './pages/auth/LoginPage';
 import { PasswordResetPage } from './pages/auth/PasswordResetPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { UsersPage } from './pages/admin/UsersPage';
 import { RegisterUserPage } from './pages/admin/RegisterUserPage';
@@ -45,7 +46,7 @@ const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 // Redirects to admin dashboard or clinician dashboard based on role
 const RoleBasedRedirect = () => {
-  const { isAdmin, isLoaded, isSignedIn } = useAuth();
+  const { isAdmin, isLoaded, isSignedIn, passwordResetRequired } = useAuth();
 
   if (!isLoaded) {
     return (
@@ -56,6 +57,7 @@ const RoleBasedRedirect = () => {
   }
 
   if (!isSignedIn) return <Navigate to="/login" replace />;
+  if (passwordResetRequired) return <Navigate to="/password-reset" replace />;
   if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
   return <Navigate to="/dashboard" replace />;
 };
@@ -101,6 +103,7 @@ function App() {
               {/* Public routes */}
               <Route path="/login/*" element={<LoginPage />} />
               <Route path="/password-reset" element={<PasswordResetPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
               {/* Protected routes */}
               <Route
@@ -117,18 +120,18 @@ function App() {
                 }
               >
                 <Route index element={<RoleBasedRedirect />} />
-                <Route path="dashboard" element={<ClinicianDashboardPage />} />
-                <Route path="patients" element={<PatientsListPage />} />
-                <Route path="patients/new" element={<AddPatientPage />} />
-                <Route path="patients/:id" element={<PatientDetailPage />} />
-                <Route path="patients/:id/edit" element={<EditPatientPage />} />
+                <Route path="dashboard" element={<ProtectedRoute><ClinicianDashboardPage /></ProtectedRoute>} />
+                <Route path="patients" element={<ProtectedRoute><PatientsListPage /></ProtectedRoute>} />
+                <Route path="patients/new" element={<ProtectedRoute><AddPatientPage /></ProtectedRoute>} />
+                <Route path="patients/:id" element={<ProtectedRoute><PatientDetailPage /></ProtectedRoute>} />
+                <Route path="patients/:id/edit" element={<ProtectedRoute><EditPatientPage /></ProtectedRoute>} />
                 <Route
                   path="patients/:id/assessments/new"
-                  element={<NewAssessmentPage />}
+                  element={<ProtectedRoute><NewAssessmentPage /></ProtectedRoute>}
                 />
                 <Route
                   path="patients/:id/assessments/:assessmentId/result"
-                  element={<AssessmentResultPage />}
+                  element={<ProtectedRoute><AssessmentResultPage /></ProtectedRoute>}
                 />
 
                 {/* Admin routes — role-guarded */}

@@ -6,7 +6,6 @@ import { setSidebarOpen } from '../../store/slices/uiSlice';
 import { useAuth } from '../../hooks/useAuth';
 import { getInitials } from '../../utils/formatters';
 import { formatRole } from '../../utils/formatters';
-import type { Role } from '../../types';
 
 /* ── Icons ─────────────────────────────────────────────── */
 const IconDashboard = () => (

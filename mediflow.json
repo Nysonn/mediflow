@@ -1,0 +1,602 @@
+{
+  "info": {
+    "_postman_id": "mediflow-api-collection",
+    "name": "MediFlow API",
+    "description": "Complete REST API collection for the MediFlow maternal health risk assessment platform.\n\n**Authentication**: All protected routes require a `Bearer <token>` in the `Authorization` header.\n\n**Base URL**: `http://localhost:8080`\n\n**Roles**: `admin` | `doctor` | `midwife` | `nurse`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "your_clerk_bearer_token_here",
+      "type": "string"
+    },
+    {
+      "key": "patientId",
+      "value": "uuid-patient-id-here",
+      "type": "string"
+    },
+    {
+      "key": "assessmentId",
+      "value": "uuid-assessment-id-here",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "uuid-user-id-here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Public health check endpoint. Returns service status and model service health."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"status\": \"ok\",\n  \"service\": \"mediflow\",\n  \"model_service\": {\n    \"healthy\": true\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Get Current User (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "me"]
+            },
+            "description": "Returns the currently authenticated user's profile. Requires a valid Clerk Bearer token."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"clerk_user_id\": \"user_2abc123\",\n  \"full_name\": \"Dr. Jane Doe\",\n  \"email\": \"jane.doe@hospital.org\",\n  \"phone_number\": \"+254712345678\",\n  \"role\": \"doctor\",\n  \"is_active\": true,\n  \"password_reset_required\": false,\n  \"created_at\": \"2026-01-15T08:00:00Z\",\n  \"updated_at\": \"2026-03-01T12:00:00Z\"\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"error\": \"unauthorized\",\n  \"message\": \"Missing or invalid authorization token\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Complete Password Reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/complete-password-reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "complete-password-reset"]
+            },
+            "description": "Marks the authenticated user's `password_reset_required` flag as complete. Called after a user logs in for the first time and changes their temporary password."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"message\": \"Password reset completed successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "List Patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/patients?search=&page=1&page_size=15",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "patients"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by patient name or ID number (optional)"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "page_size",
+                  "value": "15",
+                  "description": "Results per page (default: 15)"
+                }
+              ]
+            },
+            "description": "Returns a paginated list of patients. Supports optional search by name or patient ID number."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"patients\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n      \"patient_id_number\": \"P-20260001\",\n      \"full_name\": \"Mary Njeri\",\n      \"age\": 28,\n      \"date_of_admission\": \"2026-03-20T00:00:00Z\",\n      \"added_by_user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"added_by_name\": \"Dr. Jane Doe\",\n      \"latest_risk\": \"low\",\n      \"created_at\": \"2026-03-20T09:15:00Z\",\n      \"updated_at\": \"2026-03-20T09:15:00Z\"\n    }\n  ],\n  \"total\": 1,\n  \"page\": 1,\n  \"page_size\": 15,\n  \"total_pages\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id_number\": \"P-20260042\",\n  \"full_name\": \"Grace Achieng\",\n  \"age\": 24,\n  \"date_of_admission\": \"2026-03-22T08:00:00Z\"\n}",
+              "options": {
+                "raw": {"language": "json"}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "patients"]
+            },
+            "description": "Creates a new patient record. The authenticated user is recorded as the patient's creator."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"patient_id_number\": \"P-20260042\",\n  \"full_name\": \"Grace Achieng\",\n  \"age\": 24,\n  \"date_of_admission\": \"2026-03-22T08:00:00Z\",\n  \"added_by_user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"created_at\": \"2026-03-22T08:05:00Z\",\n  \"updated_at\": \"2026-03-22T08:05:00Z\"\n}"
+            },
+            {
+              "name": "422 Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"error\": \"validation_error\",\n  \"fields\": {\n    \"full_name\": \"full_name is required\",\n    \"patient_id_number\": \"patient_id_number is required\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Patient",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/patients/{{patientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "patients", "{{patientId}}"]
+            },
+            "description": "Fetches a single patient by UUID, including all their assessments and their latest risk classification."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"patient\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"patient_id_number\": \"P-20260042\",\n    \"full_name\": \"Grace Achieng\",\n    \"age\": 24,\n    \"date_of_admission\": \"2026-03-22T08:00:00Z\",\n    \"added_by_user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"created_at\": \"2026-03-22T08:05:00Z\",\n    \"updated_at\": \"2026-03-22T08:05:00Z\"\n  },\n  \"assessments\": [],\n  \"latest_risk\": \"unknown\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"error\": \"not_found\",\n  \"message\": \"The requested resource does not exist\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id_number\": \"P-20260042\",\n  \"full_name\": \"Grace Achieng Otieno\",\n  \"age\": 25,\n  \"date_of_admission\": \"2026-03-22T08:00:00Z\"\n}",
+              "options": {
+                "raw": {"language": "json"}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/patients/{{patientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "patients", "{{patientId}}"]
+            },
+            "description": "Updates an existing patient's details. All fields are optional — only provided fields are updated."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"patient_id_number\": \"P-20260042\",\n  \"full_name\": \"Grace Achieng Otieno\",\n  \"age\": 25,\n  \"date_of_admission\": \"2026-03-22T08:00:00Z\",\n  \"added_by_user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"created_at\": \"2026-03-22T08:05:00Z\",\n  \"updated_at\": \"2026-03-22T09:30:00Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Assessments",
+      "item": [
+        {
+          "name": "Create Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"duration_labour_min\": 480,\n  \"hiv_status_num\": 0,\n  \"parity_num\": 2,\n  \"booked_unbooked\": 1,\n  \"delivery_method_clean_lscs\": 0\n}",
+              "options": {
+                "raw": {"language": "json"}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/patients/{{patientId}}/assessments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "patients", "{{patientId}}", "assessments"]
+            },
+            "description": "Creates a new PPH (Postpartum Haemorrhage) risk assessment for a patient. The ML model evaluates the inputs and returns a prediction, probabilities, and risk level.\n\n**Field reference:**\n- `duration_labour_min`: Labour duration in minutes (e.g. 480 = 8 hours)\n- `hiv_status_num`: 0 = Negative, 1 = Positive\n- `parity_num`: Number of previous deliveries\n- `booked_unbooked`: 1 = Booked (antenatal care attended), 0 = Unbooked\n- `delivery_method_clean_lscs`: 0 = Vaginal/Normal, 1 = LSCS (C-section)"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"assessment\": {\n    \"id\": \"660e8400-e29b-41d4-a716-446655440010\",\n    \"patient_id\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"assessed_by_user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"assessed_by_name\": \"Dr. Jane Doe\",\n    \"duration_labour_min\": 480,\n    \"hiv_status_num\": 0,\n    \"parity_num\": 2,\n    \"booked_unbooked\": 1,\n    \"delivery_method_clean_lscs\": 0,\n    \"prediction\": 0,\n    \"probability_no_pph\": 0.82,\n    \"probability_severe_pph\": 0.18,\n    \"risk_level\": \"low\",\n    \"created_at\": \"2026-03-22T10:00:00Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Assessments for Patient",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/patients/{{patientId}}/assessments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "patients", "{{patientId}}", "assessments"]
+            },
+            "description": "Returns all assessments for a given patient, ordered by creation date descending."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"assessments\": [\n    {\n      \"id\": \"660e8400-e29b-41d4-a716-446655440010\",\n      \"patient_id\": \"550e8400-e29b-41d4-a716-446655440002\",\n      \"assessed_by_user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"assessed_by_name\": \"Dr. Jane Doe\",\n      \"duration_labour_min\": 480,\n      \"hiv_status_num\": 0,\n      \"parity_num\": 2,\n      \"booked_unbooked\": 1,\n      \"delivery_method_clean_lscs\": 0,\n      \"prediction\": 0,\n      \"probability_no_pph\": 0.82,\n      \"probability_severe_pph\": 0.18,\n      \"risk_level\": \"low\",\n      \"created_at\": \"2026-03-22T10:00:00Z\"\n    }\n  ],\n  \"total\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Assessment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/patients/{{patientId}}/assessments/{{assessmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "patients", "{{patientId}}", "assessments", "{{assessmentId}}"]
+            },
+            "description": "Fetches a single assessment by ID, scoped to a specific patient."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"assessment\": {\n    \"id\": \"660e8400-e29b-41d4-a716-446655440010\",\n    \"patient_id\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"assessed_by_user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"assessed_by_name\": \"Dr. Jane Doe\",\n    \"duration_labour_min\": 480,\n    \"hiv_status_num\": 0,\n    \"parity_num\": 2,\n    \"booked_unbooked\": 1,\n    \"delivery_method_clean_lscs\": 0,\n    \"prediction\": 0,\n    \"probability_no_pph\": 0.82,\n    \"probability_severe_pph\": 0.18,\n    \"risk_level\": \"low\",\n    \"created_at\": \"2026-03-22T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"error\": \"not_found\",\n  \"message\": \"The requested resource does not exist\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Clinician Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "dashboard"]
+            },
+            "description": "Returns personalised stats for the currently authenticated clinician: patient count, assessment count, risk breakdowns, and recent patients they added."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"my_patients\": 14,\n  \"my_assessments\": 31,\n  \"my_high_risk\": 5,\n  \"my_low_risk\": 26,\n  \"recent_patients\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n      \"patient_id_number\": \"P-20260042\",\n      \"full_name\": \"Grace Achieng\",\n      \"age\": 24,\n      \"date_of_admission\": \"2026-03-22T08:00:00Z\",\n      \"latest_risk\": \"low\",\n      \"created_at\": \"2026-03-22T08:05:00Z\"\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "dashboard"]
+            },
+            "description": "Returns system-wide statistics for admin users only. Requires `role: admin`."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"total_users\": 12,\n  \"total_doctors\": 4,\n  \"total_midwives\": 5,\n  \"total_nurses\": 3,\n  \"total_patients\": 148,\n  \"total_assessments\": 302,\n  \"high_risk_count\": 47,\n  \"low_risk_count\": 255,\n  \"recent_patients\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n      \"patient_id_number\": \"P-20260042\",\n      \"full_name\": \"Grace Achieng\",\n      \"age\": 24,\n      \"date_of_admission\": \"2026-03-22T08:00:00Z\",\n      \"latest_risk\": \"low\",\n      \"added_by_name\": \"Dr. Jane Doe\",\n      \"created_at\": \"2026-03-22T08:05:00Z\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "403 Forbidden",
+              "status": "Forbidden",
+              "code": 403,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"error\": \"forbidden\",\n  \"message\": \"You do not have permission to access this resource\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users?role=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "users"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "",
+                  "description": "Filter by role: doctor | midwife | nurse (leave empty for all users)"
+                }
+              ]
+            },
+            "description": "Returns all users. Optionally filter by role. Requires `role: admin`."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"users\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"clerk_user_id\": \"user_2abc123\",\n      \"full_name\": \"Dr. Jane Doe\",\n      \"email\": \"jane.doe@hospital.org\",\n      \"phone_number\": \"+254712345678\",\n      \"role\": \"doctor\",\n      \"is_active\": true,\n      \"password_reset_required\": false,\n      \"created_at\": \"2026-01-15T08:00:00Z\",\n      \"updated_at\": \"2026-03-01T12:00:00Z\"\n    }\n  ],\n  \"total\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Nurse Amina Hassan\",\n  \"email\": \"amina.hassan@hospital.org\",\n  \"phone_number\": \"+254723456789\",\n  \"role\": \"nurse\",\n  \"password\": \"TempPass@2026!\"\n}",
+              "options": {
+                "raw": {"language": "json"}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "users"]
+            },
+            "description": "Registers a new clinical user in the system and provisions their Clerk account. The user will be required to reset their password on first login. Requires `role: admin`.\n\n**Roles**: `doctor` | `midwife` | `nurse`"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"message\": \"User registered successfully\",\n  \"user\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440099\",\n    \"clerk_user_id\": \"user_2xyz789\",\n    \"full_name\": \"Nurse Amina Hassan\",\n    \"email\": \"amina.hassan@hospital.org\",\n    \"phone_number\": \"+254723456789\",\n    \"role\": \"nurse\",\n    \"is_active\": true,\n    \"password_reset_required\": true,\n    \"created_at\": \"2026-03-22T11:00:00Z\",\n    \"updated_at\": \"2026-03-22T11:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "422 Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"error\": \"validation_error\",\n  \"fields\": {\n    \"email\": \"email is required\",\n    \"role\": \"role must be one of: doctor, midwife, nurse\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Deactivate User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users/{{userId}}/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "users", "{{userId}}", "deactivate"]
+            },
+            "description": "Deactivates a user account, preventing future logins. This is a soft-delete — the user record is preserved. Requires `role: admin`."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"message\": \"User deactivated successfully\",\n  \"user_id\": \"550e8400-e29b-41d4-a716-446655440099\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"error\": \"not_found\",\n  \"message\": \"The requested resource does not exist\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

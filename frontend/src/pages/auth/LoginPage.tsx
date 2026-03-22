@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useSignIn } from '@clerk/clerk-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const LoginPage = () => {
-  const { isSignedIn, isLoaded, isAdmin } = useAuth();
+  const { isSignedIn, isLoaded, isAdmin, passwordResetRequired } = useAuth();
   const { signIn, setActive, isLoaded: clerkLoaded } = useSignIn();
   const navigate = useNavigate();
 
@@ -15,6 +15,7 @@ export const LoginPage = () => {
   const [loading, setLoading]   = useState(false);
 
   if (isLoaded && isSignedIn) {
+    if (passwordResetRequired) return <Navigate to="/password-reset" replace />;
     return <Navigate to={isAdmin ? '/admin/dashboard' : '/dashboard'} replace />;
   }
 
@@ -149,13 +150,13 @@ export const LoginPage = () => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-medium text-gray-700">Password</label>
-              <a
-                href="mailto:admin@mediflow.local?subject=Password%20Reset%20Request"
+              <Link
+                to="/forgot-password"
                 className="text-xs font-medium hover:opacity-75 transition-opacity"
                 style={{ color: '#4338CA' }}
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <div className="relative">
               <input
