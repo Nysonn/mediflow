@@ -156,27 +156,45 @@ func (s *PatientService) GetAllPatients(
 		return nil, 0, err
 	}
 
-	// Merge latest risk level for each patient on this page
+	// Merge latest assessment (full details) for each patient on this page
 	if len(patients) > 0 {
 		patientIDs := make([]string, len(patients))
 		for i, p := range patients {
 			patientIDs[i] = p.ID
 		}
 
-		riskRows, err := s.db.Query(ctx, `
-			SELECT DISTINCT ON (patient_id) patient_id, risk_level
-			FROM assessments
-			WHERE patient_id = ANY($1)
-			ORDER BY patient_id, created_at DESC`,
+		aRows, err := s.db.Query(ctx, `
+			SELECT DISTINCT ON (a.patient_id)
+				a.id, a.patient_id, a.assessed_by_user_id,
+				a.duration_labour_min, a.hiv_status_num, a.parity_num,
+				a.booked_unbooked, a.delivery_method_clean_lscs,
+				a.prediction, a.probability_no_pph, a.probability_severe_pph,
+				a.risk_level, a.created_at,
+				COALESCE(u.full_name, '') AS assessed_by_name
+			FROM assessments a
+			LEFT JOIN users u ON a.assessed_by_user_id = u.id
+			WHERE a.patient_id = ANY($1)
+			ORDER BY a.patient_id, a.created_at DESC`,
 			patientIDs,
 		)
 		if err == nil {
-			defer riskRows.Close()
-			for riskRows.Next() {
-				var pid, risk string
-				if riskRows.Scan(&pid, &risk) == nil {
-					if idx, ok := idIndex[pid]; ok {
-						patients[idx].LatestRisk = risk
+			defer aRows.Close()
+			for aRows.Next() {
+				var a models.AssessmentWithUser
+				var createdAt time.Time
+				if aRows.Scan(
+					&a.ID, &a.PatientID, &a.AssessedByUserID,
+					&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
+					&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+					&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
+					&a.RiskLevel, &createdAt,
+					&a.AssessedByName,
+				) == nil {
+					a.CreatedAt = createdAt
+					if idx, ok := idIndex[a.PatientID]; ok {
+						patients[idx].LatestRisk = a.RiskLevel
+						aCopy := a
+						patients[idx].LatestAssessment = &aCopy
 					}
 				}
 			}

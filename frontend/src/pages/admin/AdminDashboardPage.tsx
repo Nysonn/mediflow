@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { PatientQuickViewModal } from '../../components/common/PatientQuickViewModal';
 import type { AppDispatch } from '../../store';
 import { setPageTitle } from '../../store/slices/uiSlice';
 import { adminApi } from '../../api/admin';
@@ -22,7 +23,7 @@ const formatHeroDate = () =>
   });
 
 const AVATAR_COLORS = [
-  '#1D4ED8', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
+  '#6B8CAE', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
 ];
 
 const getAvatarColor = (name: string): string =>
@@ -43,6 +44,7 @@ export const AdminDashboardPage = () => {
   });
 
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
   const firstName = dbUser?.full_name?.split(' ')[0] ?? '…';
 
   return (
@@ -51,7 +53,7 @@ export const AdminDashboardPage = () => {
       <div
         className="relative overflow-hidden rounded-2xl p-6 sm:p-8 text-white"
         style={{
-          background: 'linear-gradient(135deg, #1D4ED8 0%, #4338CA 55%, #7C3AED 100%)',
+          background: 'linear-gradient(135deg, #2C3E6B 0%, #4A6D8C 100%)',
         }}
       >
         {/* Decorative circles */}
@@ -61,20 +63,20 @@ export const AdminDashboardPage = () => {
 
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
           <div>
-            <p className="text-blue-200 text-xs font-medium tracking-wide mb-1 uppercase">
+            <p className="text-xs font-medium tracking-wide mb-1 uppercase" style={{ color: 'rgba(168,196,220,0.80)' }}>
               {formatHeroDate()}
             </p>
             <h1 className="text-2xl sm:text-3xl font-bold">
               Hello, {firstName}
             </h1>
-            <p className="text-blue-100 text-sm mt-1.5 opacity-90">
+            <p className="text-sm mt-1.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
               Here's a system-wide overview for today.
             </p>
           </div>
 
           <button
-            className="self-start sm:self-center flex items-center gap-2 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow-sm flex-shrink-0"
-            style={{ color: '#1D4ED8' }}
+            className="self-start sm:self-center flex items-center gap-2 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-[#F4F6F8] transition-colors shadow-sm flex-shrink-0"
+            style={{ color: '#6B8CAE' }}
             onClick={() => setRegisterOpen(true)}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -141,15 +143,13 @@ export const AdminDashboardPage = () => {
       {/* ── Recent Patients Table ── */}
       <div className="rounded-2xl overflow-hidden"
         style={{
-          background: 'rgba(255, 255, 255, 0.42)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.68)',
-          boxShadow: '0 8px 32px rgba(99, 102, 241, 0.10), 0 1px 4px rgba(0,0,0,0.04)',
+          background: '#ffffff',
+          border: '1px solid #DDE3EA',
+          boxShadow: '0 1px 3px rgba(26,37,53,0.08)',
         }}
       >
         {/* Table header */}
-        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.4)' }}>
+        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #DDE3EA' }}>
           <div>
             <h3 className="section-title">Recent Patients</h3>
             <p className="text-xs text-gray-400 mt-0.5">
@@ -157,8 +157,8 @@ export const AdminDashboardPage = () => {
             </p>
           </div>
           <button
-            className="flex items-center gap-1 text-sm font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-blue-50"
-            style={{ color: '#1D4ED8' }}
+            className="flex items-center gap-1 text-sm font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#F4F6F8]"
+            style={{ color: '#6B8CAE' }}
             onClick={() => navigate('/patients')}
           >
             View all
@@ -179,19 +179,20 @@ export const AdminDashboardPage = () => {
                 <th className="table-header-cell text-left hidden md:table-cell">Admitted</th>
                 <th className="table-header-cell text-left hidden lg:table-cell">Added By</th>
                 <th className="table-header-cell text-left">Risk</th>
+                <th className="table-header-cell text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <SkeletonRow key={i} cols={6} />
+                  <SkeletonRow key={i} cols={7} />
                 ))
               ) : stats?.recent_patients?.length ? (
                 stats.recent_patients.map((p) => (
                   <tr
                     key={p.id}
-                    className="border-t border-gray-50 hover:bg-blue-50/40 cursor-pointer transition-colors group"
-                    onClick={() => navigate(`/patients/${p.id}`)}
+                    className="transition-colors group"
+                    style={{ borderTop: '1px solid #DDE3EA' }}
                   >
                     {/* Patient name + avatar */}
                     <td className="px-4 py-3.5">
@@ -202,7 +203,7 @@ export const AdminDashboardPage = () => {
                         >
                           {getInitials(p.full_name)}
                         </div>
-                        <span className="font-medium text-sm text-gray-800 group-hover:text-blue-700 transition-colors">
+                        <span className="font-medium text-sm" style={{ color: '#1A2535' }}>
                           {p.full_name}
                         </span>
                       </div>
@@ -230,15 +231,27 @@ export const AdminDashboardPage = () => {
                         <span className="text-xs text-gray-400 italic">—</span>
                       )}
                     </td>
+                    <td className="px-4 py-3.5">
+                      <button
+                        className="flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
+                        style={{ color: '#6B8CAE' }}
+                        onClick={() => setQuickViewId(p.id)}
+                      >
+                        View
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center">
+                  <td colSpan={7} className="px-4 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div
                         className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                        style={{ background: 'rgba(99,102,241,0.10)', color: '#6366f1' }}
+                        style={{ background: 'rgba(107,140,174,0.10)', color: '#6B8CAE' }}
                       >
                         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}
@@ -261,6 +274,7 @@ export const AdminDashboardPage = () => {
       </div>
 
       <RegisterClinicianModal isOpen={registerOpen} onClose={() => setRegisterOpen(false)} />
+      <PatientQuickViewModal patientId={quickViewId} onClose={() => setQuickViewId(null)} />
     </div>
   );
 };

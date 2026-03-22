@@ -9,20 +9,20 @@ const inputStyle: React.CSSProperties = {
   padding: '10px 14px',
   borderRadius: '10px',
   fontSize: '0.875rem',
-  color: '#1e293b',
-  background: '#F8FAFC',
-  border: '1px solid #E2E8F0',
+  color: '#1A2535',
+  background: '#F4F6F8',
+  border: '1px solid #DDE3EA',
   outline: 'none',
   transition: 'border 0.15s, box-shadow 0.15s',
   boxSizing: 'border-box',
 };
 
 const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.border = '1px solid #6366f1';
-  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
+  e.currentTarget.style.border = '1px solid #6B8CAE';
+  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(107,140,174,0.15)';
 };
 const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.border = '1px solid #E2E8F0';
+  e.currentTarget.style.border = '1px solid #DDE3EA';
   e.currentTarget.style.boxShadow = 'none';
 };
 
@@ -58,7 +58,7 @@ export const ForgotPasswordPage = () => {
     <div className="flex items-center gap-2.5 mb-7">
       <div
         className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+        style={{ backgroundColor: '#6B8CAE' }}
       >
         <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
           <rect x="11" y="5" width="2" height="14" />
@@ -91,18 +91,16 @@ export const ForgotPasswordPage = () => {
     ) : null;
 
   const cardStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.90)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.80)',
+    background: '#ffffff',
+    border: '1px solid #DDE3EA',
     borderRadius: '1.25rem',
-    boxShadow: '0 16px 48px rgba(99,102,241,0.14), 0 2px 8px rgba(0,0,0,0.06)',
+    boxShadow: '0 4px 16px rgba(26,37,53,0.08)',
     padding: '2rem',
   };
 
   const submitBtnStyle: React.CSSProperties = {
-    background: 'linear-gradient(135deg, #1D4ED8 0%, #4338CA 100%)',
-    boxShadow: '0 4px 14px rgba(67,56,202,0.35)',
+    backgroundColor: '#6B8CAE',
+    boxShadow: '0 4px 14px rgba(107,140,174,0.35)',
   };
 
   // ── Step 1: request reset code ────────────────────────────────────────────
@@ -177,7 +175,7 @@ export const ForgotPasswordPage = () => {
   );
 
   const pageBackground: React.CSSProperties = {
-    background: 'linear-gradient(135deg, #dbeafe 0%, #e0e7ff 50%, #ede9fe 100%)',
+    background: '#F4F6F8',
   };
 
   if (step === 'request') {
@@ -228,7 +226,7 @@ export const ForgotPasswordPage = () => {
             <Link
               to="/login"
               className="text-xs font-medium hover:opacity-75 transition-opacity"
-              style={{ color: '#4338CA' }}
+              style={{ color: '#6B8CAE' }}
             >
               ← Back to sign in
             </Link>
@@ -344,7 +342,7 @@ export const ForgotPasswordPage = () => {
             type="button"
             onClick={() => { setStep('request'); setError(''); setCode(''); }}
             className="text-xs font-medium hover:opacity-75 transition-opacity"
-            style={{ color: '#4338CA', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ color: '#6B8CAE', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             ← Use a different email
           </button>

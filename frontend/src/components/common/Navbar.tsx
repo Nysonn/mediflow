@@ -17,13 +17,22 @@ export const Navbar = () => {
   const { dbUser } = useAuth();
 
   return (
-    <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-[#E5E7EB] px-4 sm:px-6 py-3 flex items-center justify-between">
+    <div
+      className="sticky top-0 z-30 px-4 sm:px-6 py-3 flex items-center justify-between"
+      style={{
+        background: '#ffffff',
+        borderBottom: '1px solid #DDE3EA',
+      }}
+    >
       {/* Left: hamburger + page title */}
       <div className="flex items-center gap-3">
         <button
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+          style={{ color: '#6B7A8D' }}
           onClick={() => dispatch(toggleSidebar())}
           aria-label="Toggle sidebar"
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F4F6F8')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -36,18 +45,18 @@ export const Navbar = () => {
           </svg>
         </button>
 
-        <div className="flex items-center gap-2">
-          <span className="text-base font-bold text-gray-900">{pageTitle}</span>
-        </div>
+        <span className="text-base font-bold" style={{ color: '#1A2535' }}>{pageTitle}</span>
       </div>
 
-      {/* Right: notification bell + greeting + avatar */}
+      {/* Right: greeting + avatar */}
       {dbUser && (
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Notification bell */}
           <button
-            className="relative w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="relative w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+            style={{ color: '#6B7A8D' }}
             aria-label="Notifications"
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F4F6F8')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -55,17 +64,15 @@ export const Navbar = () => {
             </svg>
           </button>
 
-          {/* Divider */}
-          <div className="hidden sm:block h-5 w-px bg-gray-200" />
+          <div className="hidden sm:block h-5 w-px" style={{ backgroundColor: '#DDE3EA' }} />
 
-          {/* Greeting + avatar */}
           <div className="flex items-center gap-2.5">
-            <span className="hidden sm:block text-sm text-gray-500">
+            <span className="hidden sm:block text-sm" style={{ color: '#6B7A8D' }}>
               {getGreeting(dbUser.full_name)}
             </span>
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm"
-              style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+              style={{ backgroundColor: '#6B8CAE' }}
             >
               {getInitials(dbUser.full_name)}
             </div>

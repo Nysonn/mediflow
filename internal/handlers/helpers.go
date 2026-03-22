@@ -1,10 +1,18 @@
 package handlers
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
+
+var uuidRegex = regexp.MustCompile(`(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+
+// isValidUUID returns true if s is a well-formed UUID.
+func isValidUUID(s string) bool {
+	return uuidRegex.MatchString(s)
+}
 
 // GetInitials returns up to 2 uppercase initials from a full name.
 // "John Doe" → "JD", "Madonna" → "M"

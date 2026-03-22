@@ -14,6 +14,7 @@ import { RiskBadge } from '../../components/common/RiskBadge';
 import { RoleBadge } from '../../components/common/RoleBadge';
 import { formatDateTime, getInitials } from '../../utils/formatters';
 import { AddPatientModal } from '../../components/forms/AddPatientModal';
+import { PatientQuickViewModal } from '../../components/common/PatientQuickViewModal';
 import type { Role } from '../../types';
 
 const formatHeroDate = () =>
@@ -25,18 +26,16 @@ const formatHeroDate = () =>
   });
 
 const AVATAR_COLORS = [
-  '#1D4ED8', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
+  '#6B8CAE', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
 ];
 
 const getAvatarColor = (name: string): string =>
   AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 
 const glassCard = {
-  background: 'rgba(255,255,255,0.42)',
-  backdropFilter: 'blur(18px)',
-  WebkitBackdropFilter: 'blur(18px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-  boxShadow: '0 8px 32px rgba(99,102,241,0.10), 0 1px 4px rgba(0,0,0,0.04)',
+  background: '#ffffff',
+  border: '1px solid #DDE3EA',
+  boxShadow: '0 1px 3px rgba(26,37,53,0.08)',
 };
 
 export const ClinicianDashboardPage = () => {
@@ -59,6 +58,7 @@ export const ClinicianDashboardPage = () => {
   }
 
   const [addOpen, setAddOpen] = useState(false);
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
   const firstName = dbUser?.full_name?.split(' ')[0] ?? '…';
 
   return (
@@ -66,7 +66,7 @@ export const ClinicianDashboardPage = () => {
       {/* Hero Banner */}
       <div
         className="relative overflow-hidden rounded-2xl p-6 sm:p-8 text-white"
-        style={{ background: 'linear-gradient(135deg, #1D4ED8 0%, #4338CA 55%, #7C3AED 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #2C3E6B 0%, #4A6D8C 100%)' }}
       >
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white opacity-[0.07] transform translate-x-1/3 -translate-y-1/3" />
         <div className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full bg-white opacity-[0.06] transform translate-y-1/2" />
@@ -74,11 +74,11 @@ export const ClinicianDashboardPage = () => {
 
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
           <div>
-            <p className="text-blue-200 text-xs font-medium tracking-wide mb-1 uppercase">
+            <p className="text-xs font-medium tracking-wide mb-1 uppercase" style={{ color: 'rgba(168,196,220,0.80)' }}>
               {formatHeroDate()}
             </p>
             <h1 className="text-2xl sm:text-3xl font-bold">Hello, {firstName}</h1>
-            <p className="text-blue-100 text-sm mt-1.5 opacity-90">
+            <p className="text-sm mt-1.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
               Here's an overview of your patients and assessments today.
             </p>
           </div>
@@ -161,15 +161,15 @@ export const ClinicianDashboardPage = () => {
       <div className="rounded-2xl overflow-hidden" style={glassCard}>
         <div
           className="px-6 py-4 flex items-center justify-between"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.4)' }}
+          style={{ borderBottom: '1px solid #DDE3EA' }}
         >
           <div>
             <h3 className="section-title">Recently Assessed Patients</h3>
             <p className="text-xs text-gray-400 mt-0.5">Your latest PPH assessments</p>
           </div>
           <button
-            className="flex items-center gap-1 text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-            style={{ color: '#1D4ED8' }}
+            className="flex items-center gap-1 text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-[#F4F6F8] transition-colors"
+            style={{ color: '#6B8CAE' }}
             onClick={() => navigate('/patients')}
           >
             View all
@@ -200,7 +200,7 @@ export const ClinicianDashboardPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ background: 'rgba(249,250,251,0.60)' }}>
+                <tr style={{ background: '#F4F6F8' }}>
                   <th className="table-header-cell text-left">Patient</th>
                   <th className="table-header-cell text-left">ID</th>
                   <th className="table-header-cell text-left">Risk</th>
@@ -212,8 +212,8 @@ export const ClinicianDashboardPage = () => {
                 {stats.recent_patients.map((p) => (
                   <tr
                     key={p.id}
-                    className="hover:bg-blue-50/40 transition-colors"
-                    style={{ borderTop: '1px solid rgba(255,255,255,0.40)' }}
+                    className="transition-colors"
+                    style={{ borderTop: '1px solid #DDE3EA' }}
                   >
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
@@ -242,8 +242,8 @@ export const ClinicianDashboardPage = () => {
                     <td className="px-4 py-3.5">
                       <button
                         className="flex items-center gap-1 text-sm font-semibold hover:underline"
-                        style={{ color: '#1D4ED8' }}
-                        onClick={() => navigate(`/patients/${p.id}`)}
+                        style={{ color: '#6B8CAE' }}
+                        onClick={() => setQuickViewId(p.id)}
                       >
                         View
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -265,7 +265,7 @@ export const ClinicianDashboardPage = () => {
         <div className="flex flex-wrap gap-3">
           <button
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+            style={{ backgroundColor: '#6B8CAE' }}
             onClick={() => setAddOpen(true)}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -274,11 +274,11 @@ export const ClinicianDashboardPage = () => {
             Add New Patient
           </button>
           <button
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-indigo-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-[#F4F6F8]"
             style={{
-              background: 'rgba(255,255,255,0.60)',
-              border: '1px solid rgba(99,102,241,0.30)',
-              color: '#4338CA',
+              background: '#ffffff',
+              border: '1px solid #DDE3EA',
+              color: '#6B8CAE',
             }}
             onClick={() => navigate('/patients')}
           >
@@ -288,6 +288,7 @@ export const ClinicianDashboardPage = () => {
       </div>
 
       <AddPatientModal isOpen={addOpen} onClose={() => setAddOpen(false)} />
+      <PatientQuickViewModal patientId={quickViewId} onClose={() => setQuickViewId(null)} />
     </div>
   );
 };

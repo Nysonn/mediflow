@@ -38,7 +38,7 @@ const IconSettings = () => (
 );
 
 const IconChevron = () => (
-  <svg className="w-4 h-4 ml-auto opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <svg className="w-4 h-4 ml-auto opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
   </svg>
 );
@@ -69,12 +69,11 @@ export const Sidebar = () => {
 
   const navBase =
     'group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 w-full';
-  const navInactive = 'text-gray-500 hover:bg-[#F0F4FF] hover:text-[#1D4ED8]';
-  const navActive = 'text-white shadow-md';
-  const activeGradient = { background: 'linear-gradient(135deg, #1D4ED8 0%, #4338CA 100%)' };
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `${navBase} ${isActive ? navActive : navInactive}`;
+    `${navBase} ${isActive ? 'text-white' : ''}`;
+
+  const navActiveStyle = { backgroundColor: '#6B8CAE', color: '#ffffff' };
 
   return (
     <div
@@ -83,19 +82,16 @@ export const Sidebar = () => {
         ${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'}
       `}
       style={{
-        background: 'rgba(255, 255, 255, 0.72)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.55)',
-        boxShadow: '4px 0 24px rgba(99, 102, 241, 0.08)',
+        background: '#ffffff',
+        borderRight: '1px solid #DDE3EA',
       }}
     >
       {/* ── Brand ── */}
-      <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.45)' }}>
+      <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid #DDE3EA' }}>
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+            style={{ backgroundColor: '#6B8CAE' }}
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
               <rect x="11" y="5" width="2" height="14" />
@@ -103,21 +99,21 @@ export const Sidebar = () => {
             </svg>
           </div>
           <div className="min-w-0">
-            <p className="text-base font-bold text-gray-900 leading-tight tracking-tight">
-              MediFlow
+            <p className="text-base font-bold leading-tight tracking-tight">
+              <span style={{ color: '#6B8CAE' }}>Medi</span>
+              <span style={{ color: '#1A2535' }}>Flow</span>
             </p>
-            <p className="text-[10px] text-gray-400 leading-tight mt-0.5">
-              PPH Risk Prediction
+            <p className="text-[10px] leading-tight mt-0.5" style={{ color: '#6B7A8D' }}>
+              PPH Risk Platform
             </p>
           </div>
         </div>
       </div>
 
       {/* ── Nav ── */}
-      <nav className="flex-1 px-3 flex flex-col overflow-y-auto pb-4">
+      <nav className="flex-1 px-3 flex flex-col overflow-y-auto pb-4 pt-4">
 
-        {/* Main Menu */}
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 mb-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest px-4 mb-2" style={{ color: '#6B7A8D' }}>
           Main Menu
         </p>
 
@@ -126,55 +122,72 @@ export const Sidebar = () => {
             to={isAdmin ? '/admin/dashboard' : '/dashboard'}
             end
             className={navLinkClass}
-            style={({ isActive }) => (isActive ? activeGradient : {})}
+            style={({ isActive }) => isActive ? navActiveStyle : { color: '#6B7A8D' }}
             onClick={handleNavClick}
           >
-            <IconDashboard />
-            <span className="flex-1">Dashboard</span>
-            {/* Chevron only on inactive hover — always rendered, hidden when active */}
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-              <IconChevron />
-            </span>
+            {({ isActive }) => (
+              <>
+                <IconDashboard />
+                <span className="flex-1">Dashboard</span>
+                {!isActive && (
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <IconChevron />
+                  </span>
+                )}
+              </>
+            )}
           </NavLink>
 
           <NavLink
             to="/patients"
             className={navLinkClass}
-            style={({ isActive }) => (isActive ? activeGradient : {})}
+            style={({ isActive }) => isActive ? navActiveStyle : { color: '#6B7A8D' }}
             onClick={handleNavClick}
           >
-            <IconPatients />
-            <span className="flex-1">Patients</span>
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-              <IconChevron />
-            </span>
+            {({ isActive }) => (
+              <>
+                <IconPatients />
+                <span className="flex-1">Patients</span>
+                {!isActive && (
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <IconChevron />
+                  </span>
+                )}
+              </>
+            )}
           </NavLink>
 
           {isAdmin && (
             <NavLink
               to="/admin/users"
               className={navLinkClass}
-              style={({ isActive }) => (isActive ? activeGradient : {})}
+              style={({ isActive }) => isActive ? navActiveStyle : { color: '#6B7A8D' }}
               onClick={handleNavClick}
             >
-              <IconClinicians />
-              <span className="flex-1">Clinician Management</span>
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                <IconChevron />
-              </span>
+              {({ isActive }) => (
+                <>
+                  <IconClinicians />
+                  <span className="flex-1">Clinician Management</span>
+                  {!isActive && (
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <IconChevron />
+                    </span>
+                  )}
+                </>
+              )}
             </NavLink>
           )}
         </div>
 
-        {/* Account */}
         <div className="mt-8">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 mb-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest px-4 mb-2" style={{ color: '#6B7A8D' }}>
             Account
           </p>
           <div className="flex flex-col gap-1">
             <button
               disabled
-              className={`${navBase} text-gray-300 cursor-not-allowed`}
+              className={`${navBase} cursor-not-allowed`}
+              style={{ color: '#DDE3EA' }}
             >
               <IconSettings />
               <span className="flex-1">Settings</span>
@@ -182,36 +195,41 @@ export const Sidebar = () => {
           </div>
         </div>
 
-        {/* Spacer */}
         <div className="flex-1" />
       </nav>
 
       {/* ── User profile ── */}
-      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.5)' }}>
+      <div className="px-4 py-4" style={{ borderTop: '1px solid #DDE3EA', background: '#F4F6F8' }}>
         <div className="flex items-center gap-3">
-          {/* Avatar */}
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+            style={{ backgroundColor: '#6B8CAE' }}
           >
             {getInitials(dbUser?.full_name ?? 'U')}
           </div>
 
-          {/* Name + role */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 truncate leading-tight">
+            <p className="text-sm font-semibold truncate leading-tight" style={{ color: '#1A2535' }}>
               {dbUser?.full_name}
             </p>
-            <p className="text-xs text-gray-400 leading-tight mt-0.5 capitalize">
+            <p className="text-xs leading-tight mt-0.5 capitalize" style={{ color: '#6B7A8D' }}>
               {dbUser?.role ? formatRole(dbUser.role) : ''}
             </p>
           </div>
 
-          {/* Logout icon button */}
           <button
             onClick={handleLogout}
             title="Logout"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors flex-shrink-0"
+            style={{ color: '#6B7A8D' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#C0392B';
+              e.currentTarget.style.backgroundColor = '#FDECEA';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#6B7A8D';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           >
             <IconLogout />
           </button>

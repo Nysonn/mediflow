@@ -4,35 +4,31 @@ interface RoleBadgeProps {
   role: Role;
 }
 
-const roleConfig: Record<Role, { label: string; bg: string; color: string }> = {
+const roleConfig: Record<Role, { label: string; style: React.CSSProperties }> = {
   admin: {
     label: 'Admin',
-    bg: 'rgba(99,102,241,0.12)',
-    color: '#4338CA',
+    style: { backgroundColor: '#2C3E6B', color: '#fff' },
   },
   doctor: {
     label: 'Doctor',
-    bg: 'rgba(29,78,216,0.10)',
-    color: '#1D4ED8',
+    style: { backgroundColor: '#6B8CAE', color: '#fff' },
   },
   midwife: {
     label: 'Midwife',
-    bg: 'rgba(124,58,237,0.10)',
-    color: '#7C3AED',
+    style: { backgroundColor: '#4A6D8C', color: '#fff' },
   },
   nurse: {
     label: 'Nurse',
-    bg: 'rgba(5,150,105,0.10)',
-    color: '#059669',
+    style: { backgroundColor: '#5B8A6F', color: '#fff' },
   },
 };
 
 export const RoleBadge = ({ role }: RoleBadgeProps) => {
-  const config = roleConfig[role] ?? { label: role, bg: 'rgba(99,102,241,0.10)', color: '#4338CA' };
+  const config = roleConfig[role] ?? { label: role, style: { backgroundColor: '#6B8CAE', color: '#fff' } };
   return (
     <span
       className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-      style={{ background: config.bg, color: config.color }}
+      style={config.style}
     >
       {config.label}
     </span>

@@ -4,6 +4,7 @@ import type {
   Assessment,
   PaginatedPatients,
   CreatePatientInput,
+  CreatePatientWithAssessmentInput,
 } from '../types';
 
 export const patientsApi = {
@@ -32,6 +33,13 @@ export const patientsApi = {
 
   update: async (id: string, input: Partial<CreatePatientInput>): Promise<Patient> => {
     const { data } = await apiClient.put(`/patients/${id}`, input);
+    return data;
+  },
+
+  createWithAssessment: async (
+    input: CreatePatientWithAssessmentInput,
+  ): Promise<{ patient: Patient; assessment: Assessment }> => {
+    const { data } = await apiClient.post('/patients/with-assessment', input);
     return data;
   },
 };

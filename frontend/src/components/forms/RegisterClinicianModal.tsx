@@ -37,15 +37,15 @@ const passwordStrength = (pw: string) => {
 
 const inputCls = 'w-full pl-9 pr-3 py-2 rounded-lg text-sm text-gray-800 outline-none transition-all';
 const inputStyle: React.CSSProperties = {
-  background: '#F8FAFC',
-  border: '1px solid #E2E8F0',
+  background: '#F4F6F8',
+  border: '1px solid #DDE3EA',
 };
 const focusHandler = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-  e.currentTarget.style.border = '1px solid #6366f1';
-  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.10)';
+  e.currentTarget.style.border = '1px solid #6B8CAE';
+  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(107,140,174,0.15)';
 };
 const blurHandler = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-  e.currentTarget.style.border = '1px solid #E2E8F0';
+  e.currentTarget.style.border = '1px solid #DDE3EA';
   e.currentTarget.style.boxShadow = 'none';
 };
 
@@ -149,7 +149,7 @@ export const RegisterClinicianModal = ({ isOpen, onClose }: Props) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </span>
-            <input type="text" className={inputCls} style={{ ...inputStyle, ...(fieldErrors.full_name ? { border: '1px solid #FCA5A5' } : {}) }}
+            <input type="text" className={inputCls} style={{ ...inputStyle, ...(fieldErrors.full_name ? { border: '1px solid #C0392B' } : {}) }}
               placeholder="Dr. Jane Smith" value={form.full_name} onChange={set('full_name')}
               onFocus={focusHandler} onBlur={blurHandler} />
           </div>
@@ -165,7 +165,7 @@ export const RegisterClinicianModal = ({ isOpen, onClose }: Props) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </span>
-            <input type="email" className={inputCls} style={{ ...inputStyle, ...(fieldErrors.email ? { border: '1px solid #FCA5A5' } : {}) }}
+            <input type="email" className={inputCls} style={{ ...inputStyle, ...(fieldErrors.email ? { border: '1px solid #C0392B' } : {}) }}
               placeholder="jane.smith@hospital.org" value={form.email} onChange={set('email')}
               onFocus={focusHandler} onBlur={blurHandler} />
           </div>
@@ -191,7 +191,7 @@ export const RegisterClinicianModal = ({ isOpen, onClose }: Props) => {
             <label className="block text-xs font-semibold text-gray-600 mb-1">Role *</label>
             <select
               className="w-full px-3 py-2 rounded-lg text-sm text-gray-800 outline-none transition-all appearance-none"
-              style={{ ...inputStyle, ...(fieldErrors.role ? { border: '1px solid #FCA5A5' } : {}) }}
+              style={{ ...inputStyle, ...(fieldErrors.role ? { border: '1px solid #C0392B' } : {}) }}
               value={form.role} onChange={set('role')}
               onFocus={focusHandler} onBlur={blurHandler}
             >
@@ -214,7 +214,7 @@ export const RegisterClinicianModal = ({ isOpen, onClose }: Props) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </span>
-              <input type="password" className={inputCls} style={{ ...inputStyle, ...(fieldErrors.password ? { border: '1px solid #FCA5A5' } : {}) }}
+              <input type="password" className={inputCls} style={{ ...inputStyle, ...(fieldErrors.password ? { border: '1px solid #C0392B' } : {}) }}
                 placeholder="Min. 8 characters" value={form.password} onChange={set('password')}
                 onFocus={focusHandler} onBlur={blurHandler} />
             </div>
@@ -240,7 +240,7 @@ export const RegisterClinicianModal = ({ isOpen, onClose }: Props) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </span>
-              <input type="password" className={inputCls} style={{ ...inputStyle, ...(fieldErrors.confirm_password ? { border: '1px solid #FCA5A5' } : {}) }}
+              <input type="password" className={inputCls} style={{ ...inputStyle, ...(fieldErrors.confirm_password ? { border: '1px solid #C0392B' } : {}) }}
                 placeholder="Repeat password" value={form.confirm_password} onChange={set('confirm_password')}
                 onFocus={focusHandler} onBlur={blurHandler} />
             </div>
@@ -254,7 +254,7 @@ export const RegisterClinicianModal = ({ isOpen, onClose }: Props) => {
             type="button"
             onClick={handleClose}
             className="flex-1 py-2 rounded-xl text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
-            style={{ border: '1px solid #E2E8F0' }}
+            style={{ border: '1px solid #DDE3EA' }}
           >
             Cancel
           </button>
@@ -262,7 +262,7 @@ export const RegisterClinicianModal = ({ isOpen, onClose }: Props) => {
             type="submit"
             disabled={mutation.isPending}
             className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)', boxShadow: '0 4px 12px rgba(67,56,202,0.30)' }}
+            style={{ backgroundColor: '#6B8CAE', boxShadow: '0 4px 12px rgba(107,140,174,0.30)' }}
           >
             {mutation.isPending ? (
               <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

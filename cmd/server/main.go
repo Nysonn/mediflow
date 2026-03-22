@@ -91,6 +91,7 @@ func main() {
 		// Patients
 		protected.GET("/patients", patientHandler.ListPatients)
 		protected.POST("/patients", patientHandler.CreatePatient)
+		protected.POST("/patients/with-assessment", assessmentHandler.CreatePatientWithAssessment)
 		protected.GET("/patients/:id", patientHandler.GetPatient)
 		protected.PUT("/patients/:id", patientHandler.UpdatePatient)
 
@@ -98,6 +99,7 @@ func main() {
 		protected.POST("/patients/:id/assessments", assessmentHandler.CreateAssessment)
 		protected.GET("/patients/:id/assessments", assessmentHandler.ListAssessments)
 		protected.GET("/patients/:id/assessments/:assessmentID", assessmentHandler.GetAssessment)
+		protected.PUT("/patients/:id/assessments/:assessmentID", assessmentHandler.UpdateAssessment)
 	}
 
 	// Admin-only routes

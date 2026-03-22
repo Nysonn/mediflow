@@ -284,6 +284,7 @@ func (s *UserService) GetDashboardStats(ctx context.Context) (*models.DashboardS
 	}
 	defer rows.Close()
 
+	patientIndex := make(map[string]int)
 	for rows.Next() {
 		var pw models.PatientWithUser
 		var doa time.Time
@@ -295,10 +296,59 @@ func (s *UserService) GetDashboardStats(ctx context.Context) (*models.DashboardS
 			return nil, fmt.Errorf("scan recent patient: %w", err)
 		}
 		pw.DateOfAdmission = doa
+		pw.Assessments = make([]models.AssessmentWithUser, 0)
+		patientIndex[pw.ID] = len(stats.RecentPatients)
 		stats.RecentPatients = append(stats.RecentPatients, pw)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate recent patients: %w", err)
+	}
+
+	// Fetch full assessment history for each recent patient
+	if len(stats.RecentPatients) > 0 {
+		patientIDs := make([]string, len(stats.RecentPatients))
+		for i, p := range stats.RecentPatients {
+			patientIDs[i] = p.ID
+		}
+		aRows, err := s.db.Query(ctx, `
+			SELECT
+				a.id, a.patient_id, a.assessed_by_user_id,
+				a.duration_labour_min, a.hiv_status_num, a.parity_num,
+				a.booked_unbooked, a.delivery_method_clean_lscs,
+				a.prediction, a.probability_no_pph, a.probability_severe_pph,
+				a.risk_level, a.created_at,
+				COALESCE(u.full_name, '') AS assessed_by_name
+			FROM assessments a
+			LEFT JOIN users u ON a.assessed_by_user_id = u.id
+			WHERE a.patient_id = ANY($1)
+			ORDER BY a.patient_id, a.created_at DESC`,
+			patientIDs,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("fetch assessments for recent patients: %w", err)
+		}
+		defer aRows.Close()
+		for aRows.Next() {
+			var a models.AssessmentWithUser
+			var createdAt time.Time
+			if err := aRows.Scan(
+				&a.ID, &a.PatientID, &a.AssessedByUserID,
+				&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
+				&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+				&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
+				&a.RiskLevel, &createdAt,
+				&a.AssessedByName,
+			); err != nil {
+				return nil, fmt.Errorf("scan assessment: %w", err)
+			}
+			a.CreatedAt = createdAt
+			if idx, ok := patientIndex[a.PatientID]; ok {
+				stats.RecentPatients[idx].Assessments = append(stats.RecentPatients[idx].Assessments, a)
+			}
+		}
+		if err := aRows.Err(); err != nil {
+			return nil, fmt.Errorf("iterate assessments: %w", err)
+		}
 	}
 
 	return stats, nil

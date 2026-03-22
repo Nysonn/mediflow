@@ -18,8 +18,10 @@ type Patient struct {
 // populated via a JOIN with the users table.
 type PatientWithUser struct {
 	Patient
-	AddedByName string `db:"added_by_name" json:"added_by_name"`
-	LatestRisk  string `db:"-"             json:"latest_risk"` // "HIGH", "LOW", or ""
+	AddedByName      string                `db:"added_by_name" json:"added_by_name"`
+	LatestRisk       string                `db:"-"             json:"latest_risk"`                  // "HIGH", "LOW", or ""
+	LatestAssessment *AssessmentWithUser   `db:"-"             json:"latest_assessment,omitempty"`  // populated by list endpoint
+	Assessments      []AssessmentWithUser  `db:"-"             json:"assessments,omitempty"`        // populated by dashboard endpoints
 }
 
 // CreatePatientInput holds the user-provided fields when registering a new patient.

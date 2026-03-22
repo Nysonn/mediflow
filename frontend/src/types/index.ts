@@ -22,6 +22,8 @@ export interface Patient {
   added_by_user_id: string;
   added_by_name: string;
   latest_risk: 'HIGH' | 'LOW' | '';
+  latest_assessment?: Assessment;   // populated by list endpoint
+  assessments?: Assessment[];       // populated by dashboard endpoints
   created_at: string;
   updated_at: string;
 }
@@ -93,6 +95,20 @@ export interface CreatePatientInput {
 }
 
 export interface CreateAssessmentInput {
+  duration_labour_min: number;
+  hiv_status_num: number;
+  parity_num: number;
+  booked_unbooked: number;
+  delivery_method_clean_lscs: number;
+}
+
+export interface CreatePatientWithAssessmentInput {
+  // Patient fields
+  patient_id_number: string;
+  full_name: string;
+  age: number;
+  date_of_admission: string;
+  // Assessment fields
   duration_labour_min: number;
   hiv_status_num: number;
   parity_num: number;

@@ -25,11 +25,9 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
           <div
             className="max-w-md w-full rounded-2xl p-8 text-center"
             style={{
-              background: 'rgba(255,255,255,0.65)',
-              backdropFilter: 'blur(18px)',
-              WebkitBackdropFilter: 'blur(18px)',
-              border: '1px solid rgba(255,255,255,0.80)',
-              boxShadow: '0 8px 32px rgba(99,102,241,0.12), 0 2px 8px rgba(0,0,0,0.04)',
+              background: '#ffffff',
+              border: '1px solid #DDE3EA',
+              boxShadow: '0 1px 3px rgba(26,37,53,0.08)',
             }}
           >
             {/* Icon */}
@@ -53,8 +51,8 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
             <button
               className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
               style={{
-                background: 'linear-gradient(135deg, #1D4ED8 0%, #4338CA 100%)',
-                boxShadow: '0 4px 14px rgba(67,56,202,0.30)',
+                backgroundColor: '#6B8CAE',
+                boxShadow: '0 4px 12px rgba(107,140,174,0.30)',
               }}
               onClick={() => window.location.reload()}
             >

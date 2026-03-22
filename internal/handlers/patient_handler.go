@@ -147,6 +147,10 @@ func (h *PatientHandler) CreatePatient(c *gin.Context) {
 // GET /api/v1/patients/:id
 func (h *PatientHandler) GetPatient(c *gin.Context) {
 	id := c.Param("id")
+	if !isValidUUID(id) {
+		StandardError(c, http.StatusBadRequest, "bad_request", "Invalid patient ID — must be a UUID")
+		return
+	}
 
 	patient, assessments, err := h.patientService.GetPatientWithAssessments(c.Request.Context(), id)
 	if err != nil {
@@ -183,6 +187,10 @@ type updatePatientRequest struct {
 // PUT /api/v1/patients/:id
 func (h *PatientHandler) UpdatePatient(c *gin.Context) {
 	id := c.Param("id")
+	if !isValidUUID(id) {
+		StandardError(c, http.StatusBadRequest, "bad_request", "Invalid patient ID — must be a UUID")
+		return
+	}
 
 	var req updatePatientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

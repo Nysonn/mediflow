@@ -28,6 +28,18 @@ export const assessmentsApi = {
     return data;
   },
 
+  update: async (
+    patientId: string,
+    assessmentId: string,
+    input: CreateAssessmentInput,
+  ): Promise<{ assessment: Assessment }> => {
+    const { data } = await apiClient.put(
+      `/patients/${patientId}/assessments/${assessmentId}`,
+      input,
+    );
+    return data;
+  },
+
   getDashboard: async (): Promise<ClinicianStats> => {
     const { data } = await apiClient.get('/dashboard');
     return data;

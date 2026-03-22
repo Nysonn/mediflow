@@ -21,18 +21,16 @@ const TABS: { label: string; value: TabFilter }[] = [
 ];
 
 const AVATAR_COLORS = [
-  '#1D4ED8', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
+  '#6B8CAE', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
 ];
 
 const getAvatarColor = (name: string): string =>
   AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 
 const glassCard = {
-  background: 'rgba(255,255,255,0.42)',
-  backdropFilter: 'blur(18px)',
-  WebkitBackdropFilter: 'blur(18px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-  boxShadow: '0 8px 32px rgba(99,102,241,0.10), 0 1px 4px rgba(0,0,0,0.04)',
+  background: '#ffffff',
+  border: '1px solid #DDE3EA',
+  boxShadow: '0 1px 3px rgba(26,37,53,0.08)',
 };
 
 const StatusBadge = ({ user }: { user: User }) => {
@@ -85,12 +83,12 @@ export const UsersPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Clinician Management</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Manage system clinicians and their access</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1A2535' }}>Clinician Management</h1>
+          <p className="text-sm mt-0.5" style={{ color: '#6B7A8D' }}>Manage system clinicians and their access</p>
         </div>
         <button
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+          style={{ backgroundColor: '#6B8CAE' }}
           onClick={() => setRegisterOpen(true)}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,10 +103,8 @@ export const UsersPage = () => {
       <div
         className="flex gap-1 w-fit rounded-xl p-1"
         style={{
-          background: 'rgba(255,255,255,0.50)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255,255,255,0.70)',
+          background: '#ffffff',
+          border: '1px solid #DDE3EA',
         }}
       >
         {TABS.map((t) => (
@@ -117,8 +113,8 @@ export const UsersPage = () => {
             className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
             style={
               tab === t.value
-                ? { background: 'linear-gradient(135deg,#1D4ED8,#4338CA)', color: '#fff' }
-                : { color: '#6B7280' }
+                ? { backgroundColor: '#6B8CAE', color: '#fff' }
+                : { color: '#6B7A8D' }
             }
             onClick={() => setTab(t.value)}
           >
@@ -132,7 +128,7 @@ export const UsersPage = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr style={{ background: 'rgba(249,250,251,0.60)' }}>
+              <tr style={{ background: '#F4F6F8' }}>
                 <th className="table-header-cell text-left">Name</th>
                 <th className="table-header-cell text-left">Phone</th>
                 <th className="table-header-cell text-left">Role</th>
@@ -148,8 +144,8 @@ export const UsersPage = () => {
                 data.users.map((user) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-blue-50/40 transition-colors"
-                    style={{ borderTop: '1px solid rgba(255,255,255,0.40)' }}
+                    className="transition-colors"
+                    style={{ borderTop: '1px solid #DDE3EA' }}
                   >
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
@@ -218,7 +214,7 @@ export const UsersPage = () => {
       {confirmUser && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+          style={{ background: 'rgba(0,0,0,0.40)' }}
           onClick={() => setConfirmUser(null)}
         >
           <div

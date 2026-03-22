@@ -19,7 +19,7 @@ export const EmptyState = ({
     {icon && (
       <div
         className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-        style={{ background: 'rgba(99,102,241,0.10)', color: '#6366f1' }}
+        style={{ background: 'rgba(107,140,174,0.10)', color: '#6B8CAE' }}
       >
         {icon}
       </div>
@@ -31,7 +31,7 @@ export const EmptyState = ({
     {actionLabel && onAction && (
       <button
         className="mt-5 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+        style={{ backgroundColor: '#6B8CAE' }}
         onClick={onAction}
       >
         {actionLabel}

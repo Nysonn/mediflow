@@ -11,22 +11,21 @@ import { RiskBadge } from '../../components/common/RiskBadge';
 import { formatDate } from '../../utils/formatters';
 import { getInitials } from '../../utils/formatters';
 import { AddPatientModal } from '../../components/forms/AddPatientModal';
+import { PatientQuickViewModal } from '../../components/common/PatientQuickViewModal';
 
 const PAGE_SIZE = 15;
 
 const AVATAR_COLORS = [
-  '#1D4ED8', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
+  '#6B8CAE', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
 ];
 
 const getAvatarColor = (name: string): string =>
   AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 
 const glassCard = {
-  background: 'rgba(255,255,255,0.42)',
-  backdropFilter: 'blur(18px)',
-  WebkitBackdropFilter: 'blur(18px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-  boxShadow: '0 8px 32px rgba(99,102,241,0.10), 0 1px 4px rgba(0,0,0,0.04)',
+  background: '#ffffff',
+  border: '1px solid #DDE3EA',
+  boxShadow: '0 1px 3px rgba(26,37,53,0.08)',
 };
 
 export const PatientsListPage = () => {
@@ -38,6 +37,7 @@ export const PatientsListPage = () => {
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
   const [addOpen, setAddOpen] = useState(false);
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(setPageTitle('Patients'));
@@ -95,12 +95,12 @@ export const PatientsListPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Patients</h1>
-          <p className="text-sm text-gray-400 mt-0.5">All patients across the system</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1A2535' }}>Patients</h1>
+          <p className="text-sm mt-0.5" style={{ color: '#6B7A8D' }}>All patients across the system</p>
         </div>
         <button
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+          style={{ backgroundColor: '#6B8CAE' }}
           onClick={() => setAddOpen(true)}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,10 +115,8 @@ export const PatientsListPage = () => {
         <div
           className="flex items-center gap-2 px-3 rounded-xl"
           style={{
-            background: 'rgba(255,255,255,0.55)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.70)',
+            background: '#ffffff',
+            border: '1px solid #DDE3EA',
           }}
         >
           <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,7 +167,7 @@ export const PatientsListPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ background: 'rgba(249,250,251,0.60)' }}>
+                <tr style={{ background: '#F4F6F8' }}>
                   <th className="table-header-cell text-left">Patient</th>
                   <th className="table-header-cell text-left">ID</th>
                   <th className="table-header-cell text-left">Age</th>
@@ -183,8 +181,8 @@ export const PatientsListPage = () => {
                 {data!.patients.map((patient) => (
                   <tr
                     key={patient.id}
-                    className="hover:bg-blue-50/40 transition-colors"
-                    style={{ borderTop: '1px solid rgba(255,255,255,0.40)' }}
+                    className="transition-colors"
+                    style={{ borderTop: '1px solid #DDE3EA' }}
                   >
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
@@ -215,8 +213,8 @@ export const PatientsListPage = () => {
                     <td className="px-4 py-3.5">
                       <button
                         className="flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
-                        style={{ color: '#4338CA' }}
-                        onClick={() => navigate(`/patients/${patient.id}`)}
+                        style={{ color: '#6B8CAE' }}
+                        onClick={() => setQuickViewId(patient.id)}
                       >
                         View
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -241,15 +239,13 @@ export const PatientsListPage = () => {
           <div
             className="flex items-center gap-1 p-1 rounded-xl"
             style={{
-              background: 'rgba(255,255,255,0.55)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.70)',
+              background: '#ffffff',
+              border: '1px solid #DDE3EA',
             }}
           >
             <button
               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/60"
-              style={{ color: '#4338CA' }}
+              style={{ color: '#6B8CAE' }}
               disabled={currentPage <= 1}
               onClick={() => handlePageChange(currentPage - 1)}
             >
@@ -260,7 +256,7 @@ export const PatientsListPage = () => {
             </span>
             <button
               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/60"
-              style={{ color: '#4338CA' }}
+              style={{ color: '#6B8CAE' }}
               disabled={currentPage >= totalPages}
               onClick={() => handlePageChange(currentPage + 1)}
             >
@@ -271,6 +267,7 @@ export const PatientsListPage = () => {
       )}
 
       <AddPatientModal isOpen={addOpen} onClose={() => setAddOpen(false)} />
+      <PatientQuickViewModal patientId={quickViewId} onClose={() => setQuickViewId(null)} />
     </div>
   );
 };

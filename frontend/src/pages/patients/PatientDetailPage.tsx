@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
@@ -10,6 +10,8 @@ import { RiskBadge } from '../../components/common/RiskBadge';
 import { EmptyState } from '../../components/common/EmptyState';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
 import { SkeletonTable } from '../../components/common/SkeletonTable';
+import { EditAssessmentModal } from '../../components/forms/EditAssessmentModal';
+import type { Assessment } from '../../types';
 import {
   formatDate,
   formatDateTime,
@@ -87,6 +89,8 @@ export const PatientDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+
+  const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['patients', id],
@@ -217,6 +221,7 @@ export const PatientDetailPage = () => {
                     <th>Booking</th>
                     <th>Delivery Method</th>
                     <th>Assessed By</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -234,6 +239,14 @@ export const PatientDetailPage = () => {
                       <td>{formatBookingStatus(a.booked_unbooked)}</td>
                       <td>{formatDeliveryMethod(a.delivery_method_clean_lscs)}</td>
                       <td>{a.assessed_by_name}</td>
+                      <td>
+                        <button
+                          className="btn btn-ghost btn-xs"
+                          onClick={() => setEditingAssessment(a)}
+                        >
+                          Edit
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -242,6 +255,12 @@ export const PatientDetailPage = () => {
           )}
         </div>
       </div>
+
+      <EditAssessmentModal
+        patientId={id!}
+        assessment={editingAssessment}
+        onClose={() => setEditingAssessment(null)}
+      />
     </div>
   );
 };

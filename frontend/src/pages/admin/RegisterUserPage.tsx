@@ -28,21 +28,19 @@ const INITIAL: FormState = {
 };
 
 const glassCard = {
-  background: 'rgba(255,255,255,0.50)',
-  backdropFilter: 'blur(18px)',
-  WebkitBackdropFilter: 'blur(18px)',
-  border: '1px solid rgba(255,255,255,0.65)',
-  boxShadow: '0 8px 32px rgba(99,102,241,0.10), 0 1px 4px rgba(0,0,0,0.04)',
+  background: '#ffffff',
+  border: '1px solid #DDE3EA',
+  boxShadow: '0 1px 3px rgba(26,37,53,0.08)',
 };
 
 const inputBase: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.6)',
-  border: '1px solid rgba(255,255,255,0.7)',
+  background: '#F4F6F8',
+  border: '1px solid #DDE3EA',
 };
 
 const inputErrorStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.6)',
-  border: '1px solid #FCA5A5',
+  background: '#F4F6F8',
+  border: '1px solid #C0392B',
 };
 
 const passwordStrength = (pw: string) => {
@@ -134,8 +132,8 @@ export const RegisterUserPage = () => {
           </svg>
           Back to Clinicians
         </button>
-        <h1 className="text-2xl font-bold text-gray-800">Register New Clinician</h1>
-        <p className="text-sm text-gray-400 mt-0.5">Create an account for a new clinical staff member</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#1A2535' }}>Register New Clinician</h1>
+        <p className="text-sm mt-0.5" style={{ color: '#6B7A8D' }}>Create an account for a new clinical staff member</p>
       </div>
 
       {/* Form Card */}
@@ -162,7 +160,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="text"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-indigo-400/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
                 style={fieldErrors.full_name ? inputErrorStyle : inputBase}
                 placeholder="Dr. Jane Smith"
                 {...field('full_name')}
@@ -185,7 +183,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="email"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-indigo-400/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
                 style={fieldErrors.email ? inputErrorStyle : inputBase}
                 placeholder="jane.smith@hospital.org"
                 {...field('email')}
@@ -208,7 +206,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="tel"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-indigo-400/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
                 style={inputBase}
                 placeholder="+265 999 000 000"
                 {...field('phone_number')}
@@ -227,7 +225,7 @@ export const RegisterUserPage = () => {
                 </svg>
               </span>
               <select
-                className="w-full pl-10 pr-9 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-indigo-400/30 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-9 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30 appearance-none cursor-pointer"
                 style={fieldErrors.role ? inputErrorStyle : inputBase}
                 {...field('role')}
               >
@@ -259,7 +257,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="password"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-indigo-400/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
                 style={fieldErrors.password ? inputErrorStyle : inputBase}
                 placeholder="Min. 8 characters"
                 {...field('password')}
@@ -295,7 +293,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="password"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-indigo-400/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
                 style={fieldErrors.confirm_password ? inputErrorStyle : inputBase}
                 placeholder="Repeat password"
                 {...field('confirm_password')}
@@ -311,7 +309,7 @@ export const RegisterUserPage = () => {
             <button
               type="submit"
               className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ background: 'linear-gradient(135deg, #1D4ED8, #4338CA)' }}
+              style={{ backgroundColor: '#6B8CAE' }}
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (

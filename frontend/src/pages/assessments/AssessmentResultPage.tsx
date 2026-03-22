@@ -85,26 +85,32 @@ export const AssessmentResultPage = () => {
 
       {/* 1. PRIMARY RISK RESULT BANNER */}
       {isHigh ? (
-        <div className="risk-high-banner card bg-error text-error-content p-8 flex flex-col sm:flex-row items-center gap-6 animate-pulse rounded-2xl shadow-lg">
-          <span className="text-7xl">⚠️</span>
+        <div
+          className="risk-high risk-high-banner rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6"
+          style={{ background: '#FDECEA', border: '2px solid #C0392B', color: '#922B21' }}
+        >
+          <span className="text-7xl" style={{ color: '#C0392B' }}>⚠</span>
           <div className="text-center sm:text-left">
             <p className="text-5xl font-extrabold tracking-widest">HIGH RISK</p>
-            <p className="text-xl font-semibold opacity-90 mt-1">Severe Postpartum Hemorrhage Predicted</p>
+            <p className="text-xl font-semibold mt-1 opacity-90">Severe Postpartum Hemorrhage Predicted</p>
             <p className="text-4xl font-bold mt-3">
               {formatProbability(assessment.probability_severe_pph)}
-              <span className="text-lg font-normal opacity-80 ml-2">probability of Severe PPH</span>
+              <span className="text-lg font-normal ml-2 opacity-75">probability of Severe PPH</span>
             </p>
           </div>
         </div>
       ) : (
-        <div className="risk-low card bg-success text-success-content p-8 flex flex-col sm:flex-row items-center gap-6 rounded-2xl shadow-lg">
-          <span className="text-7xl">✅</span>
+        <div
+          className="risk-low rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6"
+          style={{ background: '#EAF4EE', border: '2px solid #5B8A6F', color: '#2E6B4A' }}
+        >
+          <span className="text-7xl" style={{ color: '#5B8A6F' }}>✓</span>
           <div className="text-center sm:text-left">
             <p className="text-5xl font-extrabold tracking-widest">LOW RISK</p>
-            <p className="text-xl font-semibold opacity-90 mt-1">No Severe Postpartum Hemorrhage Predicted</p>
+            <p className="text-xl font-semibold mt-1 opacity-90">No Severe Postpartum Hemorrhage Predicted</p>
             <p className="text-4xl font-bold mt-3">
               {formatProbability(assessment.probability_severe_pph)}
-              <span className="text-lg font-normal opacity-80 ml-2">probability of Severe PPH</span>
+              <span className="text-lg font-normal ml-2 opacity-75">probability of Severe PPH</span>
             </p>
           </div>
         </div>
@@ -146,22 +152,24 @@ export const AssessmentResultPage = () => {
           <h3 className="card-title text-lg mb-4">Probability Breakdown</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             <div>
-              <p className="text-base-content/60 font-medium mb-1">No Severe PPH</p>
-              <p className="text-4xl font-bold text-success">{formatProbability(assessment.probability_no_pph)}</p>
-              <progress
-                className="progress progress-success w-full mt-3"
-                value={pctNoPPH}
-                max={100}
-              />
+              <p className="font-medium mb-1" style={{ color: '#6B7A8D' }}>No Severe PPH</p>
+              <p className="text-4xl font-bold" style={{ color: '#5B8A6F' }}>{formatProbability(assessment.probability_no_pph)}</p>
+              <div className="w-full mt-3 rounded-full overflow-hidden" style={{ height: '8px', background: '#DDE3EA' }}>
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${pctNoPPH}%`, backgroundColor: '#5B8A6F' }}
+                />
+              </div>
             </div>
             <div>
-              <p className="text-base-content/60 font-medium mb-1">Severe PPH</p>
-              <p className="text-4xl font-bold text-error">{formatProbability(assessment.probability_severe_pph)}</p>
-              <progress
-                className="progress progress-error w-full mt-3"
-                value={pctSeverePPH}
-                max={100}
-              />
+              <p className="font-medium mb-1" style={{ color: '#6B7A8D' }}>Severe PPH</p>
+              <p className="text-4xl font-bold" style={{ color: '#C0392B' }}>{formatProbability(assessment.probability_severe_pph)}</p>
+              <div className="w-full mt-3 rounded-full overflow-hidden" style={{ height: '8px', background: '#DDE3EA' }}>
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${pctSeverePPH}%`, backgroundColor: '#C0392B' }}
+                />
+              </div>
             </div>
           </div>
         </div>
