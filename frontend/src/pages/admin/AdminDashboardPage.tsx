@@ -7,6 +7,7 @@ import type { AppDispatch } from '../../store';
 import { setPageTitle } from '../../store/slices/uiSlice';
 import { adminApi } from '../../api/admin';
 import { useAuth } from '../../hooks/useAuth';
+import { useHealth } from '../../hooks/useHealth';
 import { StatCard } from '../../components/common/StatCard';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
 import { SkeletonRow } from '../../components/common/SkeletonRow';
@@ -42,6 +43,8 @@ export const AdminDashboardPage = () => {
     queryKey: ['admin', 'dashboard'],
     queryFn: adminApi.getDashboard,
   });
+
+  const { data: health, isLoading: healthLoading } = useHealth();
 
   const [registerOpen, setRegisterOpen] = useState(false);
   const [quickViewId, setQuickViewId] = useState<string | null>(null);
@@ -137,6 +140,47 @@ export const AdminDashboardPage = () => {
               subtitle={`${stats?.low_risk_count ?? 0} low risk`}
             />
           </>
+        )}
+      </div>
+
+      {/* ── System Health Status ── */}
+      <div
+        className="flex items-center gap-3 px-5 py-3 rounded-xl"
+        style={{ background: '#ffffff', border: '1px solid #DDE3EA' }}
+      >
+        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest flex-shrink-0">
+          System Status
+        </span>
+        {healthLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" />
+            <span className="text-xs text-gray-400">Checking…</span>
+          </div>
+        ) : health ? (
+          <div className="flex items-center gap-4 flex-wrap">
+            {[
+              { label: 'API', value: health.api },
+              { label: 'Model', value: health.model },
+            ].map(({ label, value }) => {
+              const ok = value === 'ok';
+              return (
+                <div key={label} className="flex items-center gap-1.5">
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: ok ? '#5B8A6F' : '#C0392B' }}
+                  />
+                  <span className="text-xs font-medium" style={{ color: ok ? '#5B8A6F' : '#C0392B' }}>
+                    {label}: {ok ? 'Online' : 'Offline'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" />
+            <span className="text-xs text-red-500">Unreachable</span>
+          </div>
         )}
       </div>
 

@@ -5,6 +5,7 @@ import type {
   PaginatedPatients,
   CreatePatientInput,
   CreatePatientWithAssessmentInput,
+  UpdatePatientWithAssessmentInput,
 } from '../types';
 
 export const patientsApi = {
@@ -20,7 +21,7 @@ export const patientsApi = {
   getById: async (id: string): Promise<{
     patient: Patient;
     assessments: Assessment[];
-    latest_risk: string;
+    latest_risk: 'HIGH' | 'LOW' | '';
   }> => {
     const { data } = await apiClient.get(`/patients/${id}`);
     return data;
@@ -31,7 +32,10 @@ export const patientsApi = {
     return data;
   },
 
-  update: async (id: string, input: Partial<CreatePatientInput>): Promise<Patient> => {
+  update: async (
+    id: string,
+    input: UpdatePatientWithAssessmentInput,
+  ): Promise<{ patient: Patient; assessment: Assessment }> => {
     const { data } = await apiClient.put(`/patients/${id}`, input);
     return data;
   },

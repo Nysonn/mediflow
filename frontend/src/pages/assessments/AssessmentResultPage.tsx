@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
 import { setPageTitle } from '../../store/slices/uiSlice';
-import { assessmentsApi } from '../../api/assessments';
 import { patientsApi } from '../../api/patients';
 import { PageHeader } from '../../components/common/PageHeader';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
@@ -40,20 +39,14 @@ export const AssessmentResultPage = () => {
     dispatch(setPageTitle('Assessment Result'));
   }, [dispatch]);
 
-  const { data: assessment, isLoading: assessmentLoading } = useQuery({
-    queryKey: ['assessments', id, assessmentId],
-    queryFn: () => assessmentsApi.getById(id!, assessmentId!),
-    enabled: !!id && !!assessmentId,
-  });
-
-  const { data: patientData, isLoading: patientLoading } = useQuery({
+  const { data: patientData, isLoading } = useQuery({
     queryKey: ['patients', id],
     queryFn: () => patientsApi.getById(id!),
     enabled: !!id,
   });
 
-  const isLoading = assessmentLoading || patientLoading;
   const patient = patientData?.patient;
+  const assessment = patientData?.assessments?.find((a) => a.id === assessmentId);
   const isHigh = assessment?.risk_level === 'HIGH';
 
   if (isLoading) return <PageSkeleton />;

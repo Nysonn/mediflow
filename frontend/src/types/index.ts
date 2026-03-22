@@ -115,3 +115,22 @@ export interface CreatePatientWithAssessmentInput {
   booked_unbooked: number;
   delivery_method_clean_lscs: number;
 }
+
+export interface UpdatePatientWithAssessmentInput {
+  patient_id_number?: string;
+  full_name?: string;
+  age?: number;
+  date_of_admission?: string;
+  duration_labour_min?: number;
+  hiv_status_num?: number;
+  parity_num?: number;
+  booked_unbooked?: number;
+  delivery_method_clean_lscs?: number;
+}
+
+export interface HealthStatus {
+  status: string;
+  api: string;
+  model: string;
+  timestamp: string;
+}

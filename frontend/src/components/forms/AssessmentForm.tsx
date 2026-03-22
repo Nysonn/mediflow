@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
-import { assessmentsApi } from '../../api/assessments';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { patientsApi } from '../../api/patients';
 import { formatMinutesToHours } from '../../utils/formatters';
-import type { CreateAssessmentInput } from '../../types';
 import type { ApiError } from '../../types';
 
 interface AssessmentFormProps {
@@ -28,14 +27,21 @@ const EMPTY: FormState = {
 
 export const AssessmentForm = ({ patientId }: AssessmentFormProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState>(EMPTY);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | undefined>();
 
   const mutation = useMutation({
-    mutationFn: (input: CreateAssessmentInput) =>
-      assessmentsApi.create(patientId, input),
+    mutationFn: (input: {
+      duration_labour_min: number;
+      hiv_status_num: number;
+      parity_num: number;
+      booked_unbooked: number;
+      delivery_method_clean_lscs: number;
+    }) => patientsApi.update(patientId, input),
     onSuccess: ({ assessment }) => {
+      queryClient.invalidateQueries({ queryKey: ['patients', patientId] });
       navigate(`/patients/${patientId}/assessments/${assessment.id}/result`);
     },
     onError: (err: unknown) => {

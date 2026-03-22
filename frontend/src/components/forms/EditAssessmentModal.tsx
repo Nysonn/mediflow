@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { assessmentsApi } from '../../api/assessments';
+import { patientsApi } from '../../api/patients';
 import { useNotification } from '../../hooks/useNotification';
 import { Modal } from '../common/Modal';
 import { formatMinutesToHours } from '../../utils/formatters';
-import type { Assessment, CreateAssessmentInput, ApiError } from '../../types';
+import type { Assessment, ApiError } from '../../types';
+
+interface AssessmentInput {
+  duration_labour_min: number;
+  hiv_status_num: number;
+  parity_num: number;
+  booked_unbooked: number;
+  delivery_method_clean_lscs: number;
+}
 
 interface Props {
   patientId: string;
@@ -65,8 +73,8 @@ export const EditAssessmentModal = ({ patientId, assessment, onClose }: Props) =
   }, [assessment?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const mutation = useMutation({
-    mutationFn: (input: CreateAssessmentInput) =>
-      assessmentsApi.update(patientId, assessment!.id, input),
+    mutationFn: (input: AssessmentInput) =>
+      patientsApi.update(patientId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients', patientId] });
       queryClient.invalidateQueries({ queryKey: ['clinician', 'dashboard'] });
@@ -118,7 +126,7 @@ export const EditAssessmentModal = ({ patientId, assessment, onClose }: Props) =
       parity_num: parseInt(form.parity_num, 10),
       booked_unbooked: parseInt(form.booked_unbooked, 10),
       delivery_method_clean_lscs: parseInt(form.delivery_method_clean_lscs, 10),
-    });
+    } as AssessmentInput);
   };
 
   const ae = (f: string) => fieldErrors[f];
