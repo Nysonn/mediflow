@@ -135,7 +135,7 @@ func welcomeEmailHTML(email, fullName, tempPassword, role string) string {
             <table cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
               <tr>
                 <td style="background-color:#4A6D8C;border-radius:8px;">
-                  <a href="https://mediflow.app/login"
+                  <a href="https://mediflow.me/login"
                      style="display:inline-block;padding:14px 32px;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:700;">
                     Log in to MediFlow &rarr;
                   </a>
