@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /login
+
+Disallow: /dashboard
+Disallow: /admin/
+Disallow: /patients/
+Disallow: /password-reset
+
+Sitemap: https://mediflow.me/sitemap.xml

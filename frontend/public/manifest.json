@@ -1,0 +1,16 @@
+{
+  "name": "MediFlow",
+  "short_name": "MediFlow",
+  "description": "Postpartum Hemorrhage Risk Prediction Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4A6D8C",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

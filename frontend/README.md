@@ -71,3 +71,32 @@ export default defineConfig([
   },
 ])
 ```
+
+
+## SEO & Google Indexing
+
+After deploying to `https://mediflow.me`, complete these steps to get indexed by Google:
+
+1. **Open Google Search Console**
+   Go to https://search.google.com/search-console
+
+2. **Add property**
+   Add `https://mediflow.me` as a new property.
+
+3. **Verify ownership**
+   Use the HTML file method. Google will provide a file such as `google1234abcd.html`.
+   Place it in `frontend/public/`, then rebuild and redeploy:
+   ```bash
+   npm run build
+   firebase deploy
+   ```
+
+4. **Request indexing**
+   In Search Console, open the URL Inspection tool, enter `https://mediflow.me`,
+   and click **Request Indexing**.
+
+5. **Submit the sitemap**
+   Go to Search Console → Sitemaps and submit `https://mediflow.me/sitemap.xml`.
+
+6. **Wait for indexing**
+   Google typically indexes new sites within 1–2 weeks.

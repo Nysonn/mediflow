@@ -31,6 +31,7 @@ import { NewAssessmentPage } from './pages/assessments/NewAssessmentPage';
 import { AssessmentResultPage } from './pages/assessments/AssessmentResultPage';
 import { NotFoundPage } from './pages/errors/NotFoundPage';
 import { ForbiddenPage } from './pages/errors/ForbiddenPage';
+import { LandingPage } from './pages/LandingPage';
 import { useAuth } from './hooks/useAuth';
 
 const queryClient = new QueryClient({
@@ -44,23 +45,28 @@ const queryClient = new QueryClient({
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-// Redirects to admin dashboard or clinician dashboard based on role
-const RoleBasedRedirect = () => {
-  const { isAdmin, isLoaded, isSignedIn, passwordResetRequired } = useAuth();
+// Shows the public landing page to unauthenticated visitors;
+// redirects authenticated users to their dashboard.
+const RootPage = () => {
+  const { isSignedIn, isLoaded, isAdmin, passwordResetRequired } = useAuth();
 
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <span className="loading loading-spinner loading-lg" style={{ color: '#6B8CAE' }}></span>
       </div>
     );
   }
 
-  if (!isSignedIn) return <Navigate to="/login" replace />;
-  if (passwordResetRequired) return <Navigate to="/password-reset" replace />;
-  if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
-  return <Navigate to="/dashboard" replace />;
+  if (isSignedIn) {
+    if (passwordResetRequired) return <Navigate to="/password-reset" replace />;
+    if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <LandingPage />;
 };
+
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -100,14 +106,17 @@ function App() {
           <ClerkTokenSetter />
           <BrowserRouter>
             <Routes>
-              {/* Public routes */}
+              {/* Public landing — unauthenticated visitors see LandingPage;
+                  authenticated users are redirected to their dashboard */}
+              <Route path="/" element={<RootPage />} />
+
+              {/* Auth routes */}
               <Route path="/login/*" element={<LoginPage />} />
               <Route path="/password-reset" element={<PasswordResetPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-              {/* Protected routes */}
+              {/* Protected routes — path-less layout wrapper keeps URLs unchanged */}
               <Route
-                path="/"
                 element={
                   <>
                     <SignedIn>
@@ -119,24 +128,23 @@ function App() {
                   </>
                 }
               >
-                <Route index element={<RoleBasedRedirect />} />
-                <Route path="dashboard" element={<ProtectedRoute><ClinicianDashboardPage /></ProtectedRoute>} />
-                <Route path="patients" element={<ProtectedRoute><PatientsListPage /></ProtectedRoute>} />
-                <Route path="patients/new" element={<ProtectedRoute><AddPatientPage /></ProtectedRoute>} />
-                <Route path="patients/:id" element={<ProtectedRoute><PatientDetailPage /></ProtectedRoute>} />
-                <Route path="patients/:id/edit" element={<ProtectedRoute><EditPatientPage /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><ClinicianDashboardPage /></ProtectedRoute>} />
+                <Route path="/patients" element={<ProtectedRoute><PatientsListPage /></ProtectedRoute>} />
+                <Route path="/patients/new" element={<ProtectedRoute><AddPatientPage /></ProtectedRoute>} />
+                <Route path="/patients/:id" element={<ProtectedRoute><PatientDetailPage /></ProtectedRoute>} />
+                <Route path="/patients/:id/edit" element={<ProtectedRoute><EditPatientPage /></ProtectedRoute>} />
                 <Route
-                  path="patients/:id/assessments/new"
+                  path="/patients/:id/assessments/new"
                   element={<ProtectedRoute><NewAssessmentPage /></ProtectedRoute>}
                 />
                 <Route
-                  path="patients/:id/assessments/:assessmentId/result"
+                  path="/patients/:id/assessments/:assessmentId/result"
                   element={<ProtectedRoute><AssessmentResultPage /></ProtectedRoute>}
                 />
 
                 {/* Admin routes — role-guarded */}
                 <Route
-                  path="admin/dashboard"
+                  path="/admin/dashboard"
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
                       <AdminDashboardPage />
@@ -144,7 +152,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="admin/users"
+                  path="/admin/users"
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
                       <UsersPage />
@@ -152,7 +160,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="admin/users/register"
+                  path="/admin/users/register"
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
                       <RegisterUserPage />
@@ -161,7 +169,7 @@ function App() {
                 />
 
                 {/* Error pages */}
-                <Route path="403" element={<ForbiddenPage />} />
+                <Route path="/403" element={<ForbiddenPage />} />
               </Route>
 
               <Route path="*" element={<NotFoundPage />} />
