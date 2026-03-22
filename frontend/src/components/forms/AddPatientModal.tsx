@@ -44,8 +44,8 @@ const inputStyle: React.CSSProperties = { background: '#F4F6F8', border: '1px so
 const selectCls = 'w-full px-3 py-2 rounded-lg text-sm text-gray-800 outline-none transition-all appearance-none';
 
 const focusHandler = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-  e.currentTarget.style.border = '1px solid #6B8CAE';
-  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(107,140,174,0.15)';
+  e.currentTarget.style.border = '1px solid #4A6D8C';
+  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(74,109,140,0.15)';
 };
 const blurHandler = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
   e.currentTarget.style.border = '1px solid #DDE3EA';
@@ -193,17 +193,17 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
             style={{
-              background: step >= n ? '#6B8CAE' : '#DDE3EA',
+              background: step >= n ? '#4A6D8C' : '#DDE3EA',
               color: step >= n ? '#fff' : '#6B7A8D',
             }}
           >
             {n}
           </div>
-          <span className="text-xs font-medium" style={{ color: step >= n ? '#6B8CAE' : '#6B7A8D' }}>
+          <span className="text-xs font-medium" style={{ color: step >= n ? '#4A6D8C' : '#6B7A8D' }}>
             {n === 1 ? 'Patient Details' : 'PPH Assessment'}
           </span>
           {n < 2 && (
-            <div className="w-8 h-px mx-1" style={{ background: step > 1 ? '#6B8CAE' : '#DDE3EA' }} />
+            <div className="w-8 h-px mx-1" style={{ background: step > 1 ? '#4A6D8C' : '#DDE3EA' }} />
           )}
         </div>
       ))}
@@ -316,7 +316,7 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
         <button
           type="submit"
           className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#6B8CAE', boxShadow: '0 4px 12px rgba(107,140,174,0.30)' }}
+          style={{ backgroundColor: '#4A6D8C', boxShadow: '0 4px 12px rgba(74,109,140,0.30)' }}
         >
           Next: Assessment
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -350,7 +350,7 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
         <div className="flex items-center justify-between mb-1">
           <label className="block text-xs font-semibold text-gray-600">Duration of Labour (minutes) *</label>
           {durDisplay && (
-            <span className="text-[10px] font-semibold" style={{ color: '#6B8CAE' }}>= {durDisplay}</span>
+            <span className="text-[10px] font-semibold" style={{ color: '#4A6D8C' }}>= {durDisplay}</span>
           )}
         </div>
         <input
@@ -442,7 +442,7 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
       {/* Info */}
       <div
         className="flex items-start gap-2 px-3 py-2.5 rounded-lg text-xs"
-        style={{ background: 'rgba(107,140,174,0.06)', border: '1px solid rgba(107,140,174,0.20)', color: '#4A6D8C' }}
+        style={{ background: 'rgba(74,109,140,0.06)', border: '1px solid rgba(74,109,140,0.20)', color: '#4A6D8C' }}
       >
         <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -467,7 +467,7 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
           type="submit"
           disabled={mutation.isPending}
           className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: '#6B8CAE', boxShadow: '0 4px 12px rgba(107,140,174,0.30)' }}
+          style={{ backgroundColor: '#4A6D8C', boxShadow: '0 4px 12px rgba(74,109,140,0.30)' }}
         >
           {mutation.isPending ? (
             <>

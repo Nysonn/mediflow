@@ -31,15 +31,15 @@ const AssessmentCard = ({ a, index, total }: { a: Assessment; index: number; tot
   <div
     className="rounded-xl p-4"
     style={{
-      background: index === 0 ? 'rgba(107,140,174,0.06)' : '#F4F6F8',
-      border: index === 0 ? '1px solid rgba(107,140,174,0.20)' : '1px solid #DDE3EA',
+      background: index === 0 ? 'rgba(74,109,140,0.06)' : '#F4F6F8',
+      border: index === 0 ? '1px solid rgba(74,109,140,0.20)' : '1px solid #DDE3EA',
     }}
   >
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2">
         <RiskBadge risk={a.risk_level} />
         {index === 0 && total > 1 && (
-          <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ color: '#6B8CAE', backgroundColor: 'rgba(107,140,174,0.12)' }}>
+          <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ color: '#4A6D8C', backgroundColor: 'rgba(74,109,140,0.12)' }}>
             Latest
           </span>
         )}
@@ -130,7 +130,7 @@ export const PatientQuickViewModal = ({ patientId, onClose }: Props) => {
           <div className="flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-              style={{ backgroundColor: '#6B8CAE' }}
+              style={{ backgroundColor: '#4A6D8C' }}
             >
               {isLoading ? '…' : (patient?.full_name?.[0] ?? '?')}
             </div>
@@ -202,7 +202,7 @@ export const PatientQuickViewModal = ({ patientId, onClose }: Props) => {
                   </p>
                   <span
                     className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                    style={{ background: 'rgba(107,140,174,0.10)', color: '#6B8CAE' }}
+                    style={{ background: 'rgba(74,109,140,0.10)', color: '#4A6D8C' }}
                   >
                     {assessments.length} {assessments.length === 1 ? 'assessment' : 'assessments'}
                   </span>
@@ -242,7 +242,7 @@ export const PatientQuickViewModal = ({ patientId, onClose }: Props) => {
             <button
               onClick={() => { onClose(); navigate(`/patients/${patientId}`); }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: '#6B8CAE' }}
+              style={{ backgroundColor: '#4A6D8C' }}
             >
               View Full Profile
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

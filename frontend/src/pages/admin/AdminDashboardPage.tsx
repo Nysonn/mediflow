@@ -24,7 +24,7 @@ const formatHeroDate = () =>
   });
 
 const AVATAR_COLORS = [
-  '#6B8CAE', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
+  '#5B9BD5', '#4A6D8C', '#2C3E6B', '#5B8A6F', '#7A9EBC', '#3D5A7A', '#8FAFC8',
 ];
 
 const getAvatarColor = (name: string): string =>
@@ -54,17 +54,12 @@ export const AdminDashboardPage = () => {
     <div className="space-y-6">
       {/* ── Hero Banner ── */}
       <div
-        className="relative overflow-hidden rounded-2xl p-6 sm:p-8 text-white"
+        className="rounded-2xl p-6 sm:p-8 text-white"
         style={{
-          background: 'linear-gradient(135deg, #2C3E6B 0%, #4A6D8C 100%)',
+          background: '#4A6D8C',
         }}
       >
-        {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white opacity-[0.07] transform translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full bg-white opacity-[0.06] transform translate-y-1/2" />
-        <div className="absolute top-1/2 right-1/4 w-20 h-20 rounded-full bg-white opacity-[0.04] -translate-y-1/2" />
-
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+<div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
           <div>
             <p className="text-xs font-medium tracking-wide mb-1 uppercase" style={{ color: 'rgba(168,196,220,0.80)' }}>
               {formatHeroDate()}
@@ -79,7 +74,7 @@ export const AdminDashboardPage = () => {
 
           <button
             className="self-start sm:self-center flex items-center gap-2 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-[#F4F6F8] transition-colors shadow-sm flex-shrink-0"
-            style={{ color: '#6B8CAE' }}
+            style={{ color: '#4A6D8C' }}
             onClick={() => setRegisterOpen(true)}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,22 +154,19 @@ export const AdminDashboardPage = () => {
         ) : health ? (
           <div className="flex items-center gap-4 flex-wrap">
             {[
-              { label: 'API', value: health.api },
-              { label: 'Model', value: health.model },
-            ].map(({ label, value }) => {
-              const ok = value === 'ok';
-              return (
-                <div key={label} className="flex items-center gap-1.5">
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: ok ? '#5B8A6F' : '#C0392B' }}
-                  />
-                  <span className="text-xs font-medium" style={{ color: ok ? '#5B8A6F' : '#C0392B' }}>
-                    {label}: {ok ? 'Online' : 'Offline'}
-                  </span>
-                </div>
-              );
-            })}
+              { label: 'API', ok: health.status === 'ok' },
+              { label: 'Model', ok: health.model_service?.healthy === true },
+            ].map(({ label, ok }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: ok ? '#5B8A6F' : '#C0392B' }}
+                />
+                <span className="text-xs font-medium" style={{ color: ok ? '#5B8A6F' : '#C0392B' }}>
+                  {label}: {ok ? 'Online' : 'Offline'}
+                </span>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="flex items-center gap-1.5">
@@ -202,7 +194,7 @@ export const AdminDashboardPage = () => {
           </div>
           <button
             className="flex items-center gap-1 text-sm font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#F4F6F8]"
-            style={{ color: '#6B8CAE' }}
+            style={{ color: '#4A6D8C' }}
             onClick={() => navigate('/patients')}
           >
             View all
@@ -278,7 +270,7 @@ export const AdminDashboardPage = () => {
                     <td className="px-4 py-3.5">
                       <button
                         className="flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
-                        style={{ color: '#6B8CAE' }}
+                        style={{ color: '#4A6D8C' }}
                         onClick={() => setQuickViewId(p.id)}
                       >
                         View
@@ -295,7 +287,7 @@ export const AdminDashboardPage = () => {
                     <div className="flex flex-col items-center gap-3">
                       <div
                         className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                        style={{ background: 'rgba(107,140,174,0.10)', color: '#6B8CAE' }}
+                        style={{ background: 'rgba(74,109,140,0.10)', color: '#4A6D8C' }}
                       >
                         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}

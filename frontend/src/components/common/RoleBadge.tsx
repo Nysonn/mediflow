@@ -11,7 +11,7 @@ const roleConfig: Record<Role, { label: string; style: React.CSSProperties }> = 
   },
   doctor: {
     label: 'Doctor',
-    style: { backgroundColor: '#6B8CAE', color: '#fff' },
+    style: { backgroundColor: '#4A6D8C', color: '#fff' },
   },
   midwife: {
     label: 'Midwife',
@@ -24,7 +24,7 @@ const roleConfig: Record<Role, { label: string; style: React.CSSProperties }> = 
 };
 
 export const RoleBadge = ({ role }: RoleBadgeProps) => {
-  const config = roleConfig[role] ?? { label: role, style: { backgroundColor: '#6B8CAE', color: '#fff' } };
+  const config = roleConfig[role] ?? { label: role, style: { backgroundColor: '#4A6D8C', color: '#fff' } };
   return (
     <span
       className="text-xs font-semibold px-2.5 py-0.5 rounded-full"

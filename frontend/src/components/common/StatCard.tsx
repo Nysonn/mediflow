@@ -14,41 +14,40 @@ export const StatCard = ({
   value,
   title,
   subtitle,
-  accentColor = '#6B8CAE',
+  accentColor = '#4A6D8C',
   onClick,
 }: StatCardProps) => {
   return (
     <div
-      className={`relative overflow-hidden rounded-xl p-5 transition-all duration-200 ${
-        onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : ''
+      className={`rounded-xl p-5 transition-all duration-200 ${
+        onClick ? 'cursor-pointer hover:shadow-md' : ''
       }`}
       style={{
         background: '#ffffff',
         border: '1px solid #DDE3EA',
-        boxShadow: '0 1px 3px rgba(26,37,53,0.08)',
-        borderLeft: `4px solid ${accentColor}`,
+        boxShadow: '0 1px 3px rgba(26,37,53,0.06)',
       }}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+          className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
           style={{
-            backgroundColor: `${accentColor}18`,
+            backgroundColor: `${accentColor}14`,
             color: accentColor,
           }}
         >
           {icon}
         </div>
-        <span className="text-4xl font-bold leading-none tracking-tight" style={{ color: accentColor }}>
+        <span className="text-3xl font-bold leading-none tracking-tight" style={{ color: '#1A2535' }}>
           {value}
         </span>
       </div>
 
       <div>
-        <p className="font-semibold text-sm" style={{ color: '#1A2535' }}>{title}</p>
+        <p className="text-sm font-medium" style={{ color: '#6B7A8D' }}>{title}</p>
         {subtitle && (
-          <p className="text-xs mt-0.5" style={{ color: '#6B7A8D' }}>{subtitle}</p>
+          <p className="text-xs mt-0.5 font-medium" style={{ color: accentColor }}>{subtitle}</p>
         )}
       </div>
     </div>

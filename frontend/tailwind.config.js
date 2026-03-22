@@ -10,7 +10,7 @@ export default {
         sans: ['Andika', 'sans-serif'],
       },
       colors: {
-        'scrubs-blue': '#6B8CAE',
+        'scrubs-blue': '#4A6D8C',
         'scrubs-dark': '#4A6D8C',
         'navy-deep': '#2C3E6B',
         'coat-white': '#ffffff',
@@ -26,9 +26,9 @@ export default {
     themes: [
       {
         mediflow: {
-          "primary": "#6B8CAE",
+          "primary": "#4A6D8C",
           "primary-content": "#ffffff",
-          "secondary": "#4A6D8C",
+          "secondary": "#96D2FF",
           "secondary-content": "#ffffff",
           "accent": "#2C3E6B",
           "accent-content": "#ffffff",
@@ -38,7 +38,7 @@ export default {
           "base-200": "#F4F6F8",
           "base-300": "#DDE3EA",
           "base-content": "#1A2535",
-          "info": "#6B8CAE",
+          "info": "#4A6D8C",
           "info-content": "#ffffff",
           "success": "#5B8A6F",
           "success-content": "#ffffff",

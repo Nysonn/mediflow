@@ -130,7 +130,8 @@ export interface UpdatePatientWithAssessmentInput {
 
 export interface HealthStatus {
   status: string;
-  api: string;
-  model: string;
-  timestamp: string;
+  service: string;
+  model_service: {
+    healthy: boolean;
+  };
 }

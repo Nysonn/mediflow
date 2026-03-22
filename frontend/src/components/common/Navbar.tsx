@@ -72,7 +72,7 @@ export const Navbar = () => {
             </span>
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-              style={{ backgroundColor: '#6B8CAE' }}
+              style={{ backgroundColor: '#4A6D8C' }}
             >
               {getInitials(dbUser.full_name)}
             </div>

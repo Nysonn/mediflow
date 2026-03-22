@@ -57,8 +57,8 @@ export const LoginPage = () => {
   };
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.border = '1px solid #6B8CAE';
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(107,140,174,0.15)';
+    e.currentTarget.style.border = '1px solid #4A6D8C';
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(74,109,140,0.15)';
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     e.currentTarget.style.border = '1px solid #DDE3EA';
@@ -70,28 +70,20 @@ export const LoginPage = () => {
       {/* ── Left Panel ── */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden"
-        style={{ backgroundColor: '#2C3E6B' }}
+        style={{ backgroundColor: '#4A6D8C' }}
       >
         {/* Subtle dot pattern */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: 'radial-gradient(circle, rgba(107,140,174,0.25) 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle, rgba(74,109,140,0.25) 1px, transparent 1px)',
             backgroundSize: '28px 28px',
           }}
         />
 
         {/* Brand */}
         <div className="relative flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: '#6B8CAE' }}
-          >
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
-              <rect x="11" y="5" width="2" height="14" />
-              <rect x="5" y="11" width="14" height="2" />
-            </svg>
-          </div>
+          <img src="/logo.png" alt="MediFlow" className="w-10 h-10 object-contain flex-shrink-0" />
           <p className="text-lg font-bold">
             <span style={{ color: '#A8C4DC' }}>Medi</span>
             <span style={{ color: '#ffffff' }}>Flow</span>
@@ -135,18 +127,10 @@ export const LoginPage = () => {
         >
           {/* Mobile brand */}
           <div className="flex lg:hidden items-center gap-2.5 mb-7">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: '#6B8CAE' }}
-            >
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                <rect x="11" y="5" width="2" height="14" />
-                <rect x="5" y="11" width="14" height="2" />
-              </svg>
-            </div>
+            <img src="/logo.png" alt="MediFlow" className="w-9 h-9 object-contain flex-shrink-0" />
             <div>
               <p className="text-base font-bold leading-tight">
-                <span style={{ color: '#6B8CAE' }}>Medi</span>
+                <span style={{ color: '#4A6D8C' }}>Medi</span>
                 <span style={{ color: '#1A2535' }}>Flow</span>
               </p>
               <p className="text-[10px] leading-tight" style={{ color: '#6B7A8D' }}>PPH Risk Prediction</p>
@@ -202,7 +186,7 @@ export const LoginPage = () => {
                 <Link
                   to="/forgot-password"
                   className="text-xs font-medium hover:opacity-75 transition-opacity"
-                  style={{ color: '#6B8CAE' }}
+                  style={{ color: '#4A6D8C' }}
                 >
                   Forgot password?
                 </Link>
@@ -247,8 +231,8 @@ export const LoginPage = () => {
               disabled={loading || !clerkLoaded}
               className="w-full flex items-center justify-center py-2.5 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-55 mt-1"
               style={{
-                backgroundColor: '#6B8CAE',
-                boxShadow: '0 4px 12px rgba(107,140,174,0.35)',
+                backgroundColor: '#4A6D8C',
+                boxShadow: '0 4px 12px rgba(74,109,140,0.35)',
               }}
             >
               {loading ? (

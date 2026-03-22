@@ -6,8 +6,8 @@ export const useHealth = () => {
   return useQuery<HealthStatus>({
     queryKey: ['health'],
     queryFn: healthApi.get,
-    staleTime: 30_000,
+    staleTime: 2 * 60_000,
     retry: 1,
-    refetchInterval: 60_000,
+    refetchInterval: 2 * 60_000,
   });
 };

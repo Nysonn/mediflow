@@ -160,7 +160,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="text"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#4A6D8C]/30"
                 style={fieldErrors.full_name ? inputErrorStyle : inputBase}
                 placeholder="Dr. Jane Smith"
                 {...field('full_name')}
@@ -183,7 +183,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="email"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#4A6D8C]/30"
                 style={fieldErrors.email ? inputErrorStyle : inputBase}
                 placeholder="jane.smith@hospital.org"
                 {...field('email')}
@@ -206,7 +206,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="tel"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#4A6D8C]/30"
                 style={inputBase}
                 placeholder="+265 999 000 000"
                 {...field('phone_number')}
@@ -225,7 +225,7 @@ export const RegisterUserPage = () => {
                 </svg>
               </span>
               <select
-                className="w-full pl-10 pr-9 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30 appearance-none cursor-pointer"
+                className="w-full pl-10 pr-9 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#4A6D8C]/30 appearance-none cursor-pointer"
                 style={fieldErrors.role ? inputErrorStyle : inputBase}
                 {...field('role')}
               >
@@ -257,7 +257,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="password"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#4A6D8C]/30"
                 style={fieldErrors.password ? inputErrorStyle : inputBase}
                 placeholder="Min. 8 characters"
                 {...field('password')}
@@ -293,7 +293,7 @@ export const RegisterUserPage = () => {
               </span>
               <input
                 type="password"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#6B8CAE]/30"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-800 outline-none transition-all focus:ring-2 focus:ring-[#4A6D8C]/30"
                 style={fieldErrors.confirm_password ? inputErrorStyle : inputBase}
                 placeholder="Repeat password"
                 {...field('confirm_password')}
@@ -309,7 +309,7 @@ export const RegisterUserPage = () => {
             <button
               type="submit"
               className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#6B8CAE' }}
+              style={{ backgroundColor: '#4A6D8C' }}
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (

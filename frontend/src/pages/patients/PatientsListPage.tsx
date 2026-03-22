@@ -16,7 +16,7 @@ import { PatientQuickViewModal } from '../../components/common/PatientQuickViewM
 const PAGE_SIZE = 15;
 
 const AVATAR_COLORS = [
-  '#6B8CAE', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
+  '#5B9BD5', '#4A6D8C', '#2C3E6B', '#5B8A6F', '#7A9EBC', '#3D5A7A', '#8FAFC8',
 ];
 
 const getAvatarColor = (name: string): string =>
@@ -100,7 +100,7 @@ export const PatientsListPage = () => {
         </div>
         <button
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#6B8CAE' }}
+          style={{ backgroundColor: '#4A6D8C' }}
           onClick={() => setAddOpen(true)}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,7 +213,7 @@ export const PatientsListPage = () => {
                     <td className="px-4 py-3.5">
                       <button
                         className="flex items-center gap-1 text-sm font-semibold transition-colors hover:underline"
-                        style={{ color: '#6B8CAE' }}
+                        style={{ color: '#4A6D8C' }}
                         onClick={() => setQuickViewId(patient.id)}
                       >
                         View
@@ -245,7 +245,7 @@ export const PatientsListPage = () => {
           >
             <button
               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/60"
-              style={{ color: '#6B8CAE' }}
+              style={{ color: '#4A6D8C' }}
               disabled={currentPage <= 1}
               onClick={() => handlePageChange(currentPage - 1)}
             >
@@ -256,7 +256,7 @@ export const PatientsListPage = () => {
             </span>
             <button
               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/60"
-              style={{ color: '#6B8CAE' }}
+              style={{ color: '#4A6D8C' }}
               disabled={currentPage >= totalPages}
               onClick={() => handlePageChange(currentPage + 1)}
             >

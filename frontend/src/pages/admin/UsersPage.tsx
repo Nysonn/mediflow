@@ -5,7 +5,6 @@ import type { AppDispatch } from '../../store';
 import { setPageTitle } from '../../store/slices/uiSlice';
 import { adminApi } from '../../api/admin';
 import { RoleBadge } from '../../components/common/RoleBadge';
-import { SkeletonRow } from '../../components/common/SkeletonRow';
 import { EmptyState } from '../../components/common/EmptyState';
 import { getInitials } from '../../utils/formatters';
 import { RegisterClinicianModal } from '../../components/forms/RegisterClinicianModal';
@@ -21,7 +20,7 @@ const TABS: { label: string; value: TabFilter }[] = [
 ];
 
 const AVATAR_COLORS = [
-  '#6B8CAE', '#7C3AED', '#059669', '#D97706', '#DC2626', '#0891B2', '#9333EA',
+  '#5B9BD5', '#4A6D8C', '#2C3E6B', '#5B8A6F', '#7A9EBC', '#3D5A7A', '#8FAFC8',
 ];
 
 const getAvatarColor = (name: string): string =>
@@ -88,7 +87,7 @@ export const UsersPage = () => {
         </div>
         <button
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#6B8CAE' }}
+          style={{ backgroundColor: '#4A6D8C' }}
           onClick={() => setRegisterOpen(true)}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,7 +112,7 @@ export const UsersPage = () => {
             className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
             style={
               tab === t.value
-                ? { backgroundColor: '#6B8CAE', color: '#fff' }
+                ? { backgroundColor: '#4A6D8C', color: '#fff' }
                 : { color: '#6B7A8D' }
             }
             onClick={() => setTab(t.value)}
@@ -139,7 +138,24 @@ export const UsersPage = () => {
             </thead>
             <tbody>
               {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} cols={6} />)
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} style={{ borderTop: '1px solid #DDE3EA' }}>
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="skeleton w-8 h-8 rounded-full flex-shrink-0" />
+                        <div className="flex flex-col gap-1.5">
+                          <div className="skeleton h-3 w-28 rounded" />
+                          <div className="skeleton h-2.5 w-36 rounded" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5"><div className="skeleton h-3 w-28 rounded" /></td>
+                    <td className="px-4 py-3.5"><div className="skeleton h-5 w-16 rounded-full" /></td>
+                    <td className="px-4 py-3.5"><div className="skeleton h-5 w-16 rounded-full" /></td>
+                    <td className="px-4 py-3.5"><div className="skeleton h-3 w-24 rounded" /></td>
+                    <td className="px-4 py-3.5"><div className="skeleton h-6 w-20 rounded-lg" /></td>
+                  </tr>
+                ))
               ) : data?.users?.length ? (
                 data.users.map((user) => (
                   <tr

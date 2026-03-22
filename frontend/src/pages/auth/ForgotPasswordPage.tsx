@@ -18,8 +18,8 @@ const inputStyle: React.CSSProperties = {
 };
 
 const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-  e.currentTarget.style.border = '1px solid #6B8CAE';
-  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(107,140,174,0.15)';
+  e.currentTarget.style.border = '1px solid #4A6D8C';
+  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(74,109,140,0.15)';
 };
 const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
   e.currentTarget.style.border = '1px solid #DDE3EA';
@@ -56,15 +56,7 @@ export const ForgotPasswordPage = () => {
 
   const Brand = () => (
     <div className="flex items-center gap-2.5 mb-7">
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ backgroundColor: '#6B8CAE' }}
-      >
-        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-          <rect x="11" y="5" width="2" height="14" />
-          <rect x="5" y="11" width="14" height="2" />
-        </svg>
-      </div>
+      <img src="/logo.png" alt="MediFlow" className="w-9 h-9 object-contain flex-shrink-0" />
       <div>
         <p className="text-base font-bold text-gray-900 leading-tight">MediFlow</p>
         <p className="text-[10px] text-gray-400 leading-tight">PPH Risk Prediction</p>
@@ -99,8 +91,8 @@ export const ForgotPasswordPage = () => {
   };
 
   const submitBtnStyle: React.CSSProperties = {
-    backgroundColor: '#6B8CAE',
-    boxShadow: '0 4px 14px rgba(107,140,174,0.35)',
+    backgroundColor: '#4A6D8C',
+    boxShadow: '0 4px 14px rgba(74,109,140,0.35)',
   };
 
   // ── Step 1: request reset code ────────────────────────────────────────────
@@ -226,7 +218,7 @@ export const ForgotPasswordPage = () => {
             <Link
               to="/login"
               className="text-xs font-medium hover:opacity-75 transition-opacity"
-              style={{ color: '#6B8CAE' }}
+              style={{ color: '#4A6D8C' }}
             >
               ← Back to sign in
             </Link>
@@ -342,7 +334,7 @@ export const ForgotPasswordPage = () => {
             type="button"
             onClick={() => { setStep('request'); setError(''); setCode(''); }}
             className="text-xs font-medium hover:opacity-75 transition-opacity"
-            style={{ color: '#6B8CAE', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ color: '#4A6D8C', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             ← Use a different email
           </button>
