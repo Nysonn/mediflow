@@ -44,7 +44,7 @@ const RiskBanner = ({ latestRisk, probabilitySeverePPH }: RiskBannerProps) => {
   if (!latestRisk) {
     return (
       <div className="card bg-base-300 p-6 flex flex-row items-center gap-4">
-        <span className="text-4xl">📋</span>
+        {/* <span className="text-4xl">📋</span> */}
         <div>
           <p className="text-base-content/70 font-medium">No assessment has been run for this patient yet.</p>
         </div>
@@ -55,7 +55,7 @@ const RiskBanner = ({ latestRisk, probabilitySeverePPH }: RiskBannerProps) => {
   if (latestRisk === 'HIGH') {
     return (
       <div className="risk-high-banner card bg-error text-error-content p-6 flex flex-row items-center gap-6 animate-pulse">
-        <span className="text-5xl">⚠️</span>
+        {/* <span className="text-5xl">⚠️</span> */}
         <div>
           <p className="text-3xl font-extrabold tracking-wide">HIGH RISK</p>
           <p className="text-lg font-semibold opacity-90">Severe Postpartum Hemorrhage Predicted</p>
@@ -71,7 +71,7 @@ const RiskBanner = ({ latestRisk, probabilitySeverePPH }: RiskBannerProps) => {
 
   return (
     <div className="card bg-success text-success-content p-6 flex flex-row items-center gap-6">
-      <span className="text-5xl">✅</span>
+      {/* <span className="text-5xl">✅</span> */}
       <div>
         <p className="text-3xl font-extrabold tracking-wide">LOW RISK</p>
         <p className="text-lg font-semibold opacity-90">Low risk of Severe Postpartum Hemorrhage</p>
