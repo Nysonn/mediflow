@@ -34,8 +34,6 @@ RUN go build -ldflags="-s -w" -o /app/cmd-server ./cmd/server
 FROM alpine:latest AS production
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /app/cmd-server /app/cmd-server
-COPY --from=builder /app/internal/templates /app/internal/templates
-COPY --from=builder /app/static /app/static
 RUN adduser -D app \
     && chown -R app:app /app
 USER app
