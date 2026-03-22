@@ -7,8 +7,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# The model file will be mounted or copied here
-RUN mkdir -p /app/model
+# Download the model file during build
+RUN mkdir -p /app/model && \
+    wget -O /app/model/final_lr_model.joblib \
+    "https://github.com/Nysonn/mediflow/releases/download/v1.0.0/final_lr_model.joblib"
 
 EXPOSE 8000
 
