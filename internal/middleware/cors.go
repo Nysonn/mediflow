@@ -14,6 +14,8 @@ func CORS(cfg *config.Config) gin.HandlerFunc {
 		"http://localhost:5173",
 		"http://localhost:5174",
 		"https://mediflow-3bbc3.web.app",
+		"https://mediflow.me",
+		"https://www.mediflow.me",
 	}
 	// Add the configured FRONTEND_URL if it's not already in the list.
 	if cfg.FrontendURL != "" {
