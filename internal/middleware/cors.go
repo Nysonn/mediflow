@@ -3,9 +3,10 @@ package middleware
 import (
 	"time"
 
+	"mediflow/internal/config"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"mediflow/internal/config"
 )
 
 // CORS returns a middleware that allows cross-origin requests from the configured frontend origins.
