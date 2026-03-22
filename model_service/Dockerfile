@@ -7,10 +7,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Download the model file during build
-RUN mkdir -p /app/model && \
-    wget -O /app/model/final_lr_model.joblib \
-    "https://github.com/Nysonn/mediflow/releases/download/v1.0.0/final_lr_model.joblib"
+# Install curl and download the model file during build
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && mkdir -p /app/model \
+    && curl -L -o /app/model/final_lr_model.joblib \
+    "https://github.com/Nysonn/mediflow/releases/download/v1.0.0/final_lr_model.joblib" \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8000
 
