@@ -349,6 +349,14 @@ func (s *UserService) GetDashboardStats(ctx context.Context) (*models.DashboardS
 		if err := aRows.Err(); err != nil {
 			return nil, fmt.Errorf("iterate assessments: %w", err)
 		}
+
+		// Derive LatestRisk from the most-recent assessment for each patient.
+		// Assessments are ordered DESC by created_at, so index 0 is the latest.
+		for i, p := range stats.RecentPatients {
+			if len(p.Assessments) > 0 {
+				stats.RecentPatients[i].LatestRisk = p.Assessments[0].RiskLevel
+			}
+		}
 	}
 
 	return stats, nil

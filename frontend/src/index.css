@@ -33,6 +33,20 @@
   animation: risk-pulse 2s infinite;
 }
 
+/* Logo heartbeat animation for loading screen */
+@keyframes logo-heartbeat {
+  0%   { transform: scale(1);    opacity: 1; }
+  14%  { transform: scale(1.15); opacity: 1; }
+  28%  { transform: scale(1);    opacity: 1; }
+  42%  { transform: scale(1.1);  opacity: 1; }
+  56%  { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(1);    opacity: 0.75; }
+}
+
+.logo-heartbeat {
+  animation: logo-heartbeat 1.4s ease-in-out infinite;
+}
+
 /* Skeleton shimmer */
 @keyframes shimmer {
   0% { background-position: -1000px 0; }

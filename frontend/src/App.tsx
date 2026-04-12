@@ -53,7 +53,7 @@ const RootPage = () => {
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg" style={{ color: '#6B8CAE' }}></span>
+        <img src="/logo.png" alt="MediFlow" className="w-20 h-20 logo-heartbeat" />
       </div>
     );
   }
@@ -80,7 +80,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <img src="/logo.png" alt="MediFlow" className="w-20 h-20 logo-heartbeat" />
       </div>
     );
   }
