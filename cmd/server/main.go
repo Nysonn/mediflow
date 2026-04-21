@@ -49,6 +49,7 @@ func main() {
 	adminHandler := handlers.NewAdminHandler(userService, clerkAdminSvc, resendSvc)
 	patientHandler := handlers.NewPatientHandler(patientService)
 	assessmentHandler := handlers.NewAssessmentHandler(assessmentService, patientService)
+	modelXAIHandler := handlers.NewModelXAIHandler(cfg.ModelServiceURL)
 
 	// ── Router ────────────────────────────────────────────────────────────────
 	router := gin.Default()
@@ -100,6 +101,10 @@ func main() {
 		protected.GET("/patients/:id/assessments", assessmentHandler.ListAssessments)
 		protected.GET("/patients/:id/assessments/:assessmentID", assessmentHandler.GetAssessment)
 		protected.PUT("/patients/:id/assessments/:assessmentID", assessmentHandler.UpdateAssessment)
+
+		// Model XAI endpoints (proxy to Python model service)
+		protected.POST("/model/explain", modelXAIHandler.Explain)
+		protected.POST("/model/confidence", modelXAIHandler.Confidence)
 	}
 
 	// Admin-only routes

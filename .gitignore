@@ -38,3 +38,5 @@ model_service/model/
 frontend/.env
 frontend/node_modules/
 frontend/dist/
+
+cleaned_data_zimbabwe.csv

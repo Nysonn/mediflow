@@ -1,0 +1,167 @@
+{
+  "generated_at": "2026-04-21T17:57:49.550Z",
+  "n_records": 223,
+  "severity_tiers": {
+    "Mild": {
+      "n": 118,
+      "blood_loss_range": "500–999 ml"
+    },
+    "Moderate": {
+      "n": 67,
+      "blood_loss_range": "1000–1499 ml"
+    },
+    "Severe": {
+      "n": 38,
+      "blood_loss_range": ">=1500 ml"
+    }
+  },
+  "features": {
+    "duration_labour_min": {
+      "overall": {
+        "mean": 430.64,
+        "std": 476.64,
+        "p5": 0,
+        "p25": 0,
+        "p50": 327,
+        "p75": 710,
+        "p95": 1290.95,
+        "min": 0,
+        "max": 2165,
+        "n": 214
+      },
+      "Mild": {
+        "mean": 686.7,
+        "std": 451.56,
+        "p5": 150,
+        "p25": 367,
+        "p50": 591,
+        "p75": 844,
+        "p95": 1600,
+        "min": 0,
+        "max": 2165,
+        "n": 111
+      },
+      "Moderate": {
+        "mean": 172.28,
+        "std": 345.08,
+        "p5": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 205,
+        "p95": 1093,
+        "min": 0,
+        "max": 1272,
+        "n": 65
+      },
+      "Severe": {
+        "mean": 124.61,
+        "std": 292.43,
+        "p5": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p95": 996.5,
+        "min": 0,
+        "max": 1040,
+        "n": 38
+      }
+    },
+    "parity_num": {
+      "overall": {
+        "mean": 1.63,
+        "std": 1.37,
+        "p5": 0,
+        "p25": 1,
+        "p50": 1,
+        "p75": 2,
+        "p95": 4,
+        "min": 0,
+        "max": 8,
+        "n": 223
+      },
+      "Mild": {
+        "mean": 1.32,
+        "std": 1.28,
+        "p5": 0,
+        "p25": 0,
+        "p50": 1,
+        "p75": 2,
+        "p95": 3.15,
+        "min": 0,
+        "max": 6,
+        "n": 118
+      },
+      "Moderate": {
+        "mean": 1.94,
+        "std": 1.47,
+        "p5": 0,
+        "p25": 1,
+        "p50": 2,
+        "p75": 3,
+        "p95": 4,
+        "min": 0,
+        "max": 8,
+        "n": 67
+      },
+      "Severe": {
+        "mean": 2.03,
+        "std": 1.24,
+        "p5": 0.85,
+        "p25": 1,
+        "p50": 2,
+        "p75": 2,
+        "p95": 4.15,
+        "min": 0,
+        "max": 6,
+        "n": 38
+      }
+    }
+  },
+  "population_medians": {
+    "duration_labour_min": 329,
+    "parity_num": 1
+  },
+  "categorical": {
+    "delivery_method": {
+      "NVD": {
+        "n": 140,
+        "severe_pph_n": 7,
+        "severe_pph_pct": 5
+      },
+      "LSCS": {
+        "n": 80,
+        "severe_pph_n": 30,
+        "severe_pph_pct": 37.5
+      },
+      "Forceps": {
+        "n": 2,
+        "severe_pph_n": 0,
+        "severe_pph_pct": 0
+      }
+    },
+    "booking_status": {
+      "Booked": {
+        "n": 199,
+        "severe_pph_n": 30,
+        "severe_pph_pct": 15.1
+      },
+      "Unbooked": {
+        "n": 24,
+        "severe_pph_n": 8,
+        "severe_pph_pct": 33.3
+      }
+    },
+    "hiv_status": {
+      "HIV Negative": {
+        "n": 168,
+        "severe_pph_n": 28,
+        "severe_pph_pct": 16.7
+      },
+      "HIV Positive": {
+        "n": 39,
+        "severe_pph_n": 6,
+        "severe_pph_pct": 15.4
+      }
+    }
+  }
+}

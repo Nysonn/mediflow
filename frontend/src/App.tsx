@@ -32,6 +32,10 @@ import { AssessmentResultPage } from './pages/assessments/AssessmentResultPage';
 import { NotFoundPage } from './pages/errors/NotFoundPage';
 import { ForbiddenPage } from './pages/errors/ForbiddenPage';
 import { LandingPage } from './pages/LandingPage';
+import { TrendsPage } from './pages/trends/TrendsPage';
+import { ModelPerformancePage } from './pages/performance/ModelPerformancePage';
+import { BatchPredictionPage } from './pages/batch/BatchPredictionPage';
+import { AboutPage } from './pages/about/AboutPage';
 import { useAuth } from './hooks/useAuth';
 
 const queryClient = new QueryClient({
@@ -140,6 +144,22 @@ function App() {
                 <Route
                   path="/patients/:id/assessments/:assessmentId/result"
                   element={<ProtectedRoute><AssessmentResultPage /></ProtectedRoute>}
+                />
+                <Route
+                  path="/patients/:id/trends"
+                  element={<ProtectedRoute><TrendsPage /></ProtectedRoute>}
+                />
+                <Route
+                  path="/model-performance"
+                  element={<ProtectedRoute><ModelPerformancePage /></ProtectedRoute>}
+                />
+                <Route
+                  path="/batch-predict"
+                  element={<ProtectedRoute><BatchPredictionPage /></ProtectedRoute>}
+                />
+                <Route
+                  path="/about"
+                  element={<ProtectedRoute><AboutPage /></ProtectedRoute>}
                 />
 
                 {/* Admin routes — role-guarded */}
