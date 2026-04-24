@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"mediflow/internal/config"
 	"mediflow/internal/database"
 	"mediflow/internal/handlers"
 	"mediflow/internal/middleware"
 	"mediflow/internal/models"
 	"mediflow/internal/services"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -74,17 +75,17 @@ func main() {
 
 	// Auth routes (require authentication)
 	api.GET("/auth/me",
-		middleware.RequireAuth(userService, clerkService),
+		middleware.RequireAuth(userService, clerkService, cfg.AppEnv),
 		authHandler.GetMe,
 	)
 	api.POST("/auth/complete-password-reset",
-		middleware.RequireAuth(userService, clerkService),
+		middleware.RequireAuth(userService, clerkService, cfg.AppEnv),
 		authHandler.CompletePasswordReset,
 	)
 
 	// Protected routes (all authenticated users)
 	protected := api.Group("/")
-	protected.Use(middleware.RequireAuth(userService, clerkService))
+	protected.Use(middleware.RequireAuth(userService, clerkService, cfg.AppEnv))
 	{
 		// Dashboard
 		protected.GET("/dashboard", dashboardHandler.GetDashboard)
@@ -109,7 +110,7 @@ func main() {
 
 	// Admin-only routes
 	admin := api.Group("/admin")
-	admin.Use(middleware.RequireAuth(userService, clerkService))
+	admin.Use(middleware.RequireAuth(userService, clerkService, cfg.AppEnv))
 	admin.Use(middleware.RequireRole(models.RoleAdmin))
 	{
 		admin.GET("/dashboard", adminHandler.GetDashboard)
