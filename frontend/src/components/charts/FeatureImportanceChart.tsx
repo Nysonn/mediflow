@@ -1,4 +1,4 @@
-import Plot from 'react-plotly.js';
+import Plot from '../../lib/Plot';
 
 interface FeatureImportanceChartProps {
   /** Whether LSCS was selected (1) or not (0) */

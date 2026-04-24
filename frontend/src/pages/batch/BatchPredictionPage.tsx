@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import Plot from 'react-plotly.js';
+import Plot from '../../lib/Plot';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -307,7 +307,8 @@ export const BatchPredictionPage = () => {
                     {
                       x: results.map((r) => r.probability_severe_pph),
                       type: 'histogram',
-                      nbinsx: 20,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ...({ nbinsx: 20 } as any),
                       marker: {
                         color: results.map((r) => getSeverityColours(r.probability_severe_pph).background),
                         opacity: 0.8,

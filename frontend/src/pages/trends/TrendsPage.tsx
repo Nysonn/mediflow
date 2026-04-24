@@ -2,13 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
-import Plot from 'react-plotly.js';
+import Plot from '../../lib/Plot';
 import type { AppDispatch } from '../../store';
 import { setPageTitle } from '../../store/slices/uiSlice';
 import { patientsApi } from '../../api/patients';
 import { modelXaiApi } from '../../api/modelXai';
 import { PageHeader } from '../../components/common/PageHeader';
-import { PPH_COLOURS, getSeverityTier, getSeverityColours } from '../../theme/pphTheme';
+import { PPH_COLOURS, getSeverityColours } from '../../theme/pphTheme';
 import { formatDateTime } from '../../utils/formatters';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -306,7 +306,6 @@ export const TrendsPage = () => {
           <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-3">Assessment History</h3>
           <div className="space-y-2">
             {assessments.slice(-6).map((a, i) => {
-              const tier = getSeverityTier(a.probability_severe_pph);
               const col = getSeverityColours(a.probability_severe_pph);
               return (
                 <div key={a.id} className="flex items-center gap-4 p-3 rounded-lg bg-base-200">

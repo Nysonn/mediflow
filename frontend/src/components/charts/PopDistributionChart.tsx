@@ -1,4 +1,4 @@
-import Plot from 'react-plotly.js';
+import Plot from '../../lib/Plot';
 import { PPH_COLOURS } from '../../theme/pphTheme';
 
 interface PopDistributionChartProps {

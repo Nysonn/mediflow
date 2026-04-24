@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import jsPDF from 'jspdf';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
@@ -19,6 +20,7 @@ import { ABNORMALITY_FLAGS } from '../../data/abnormalityFlags';
 import { getRelevantClinicalNotes } from '../../data/clinicalNotes';
 import { PPH_COLOURS, getSeverityTier, getSeverityColours, MODEL_VERSION } from '../../theme/pphTheme';
 import {
+  formatDate,
   formatDateTime,
   formatProbability,
   formatMinutesToHours,
@@ -161,6 +163,7 @@ export const AssessmentResultPage = () => {
   const [xaiLoading, setXaiLoading] = useState(false);
   const [xaiError, setXaiError] = useState<string | null>(null);
   const [populationStats, setPopulationStats] = useState<PopulationStats | null>(null);
+  const [reportGenerating, setReportGenerating] = useState(false);
 
   useEffect(() => { dispatch(setPageTitle('Assessment Result')); }, [dispatch]);
 
@@ -234,7 +237,10 @@ export const AssessmentResultPage = () => {
   };
 
   const clinicalNotes = getRelevantClinicalNotes({
-    ...assessmentFeatures,
+    duration_labour_min: assessment.duration_labour_min,
+    hiv_status_num: assessment.hiv_status_num,
+    parity_num: assessment.parity_num,
+    booked_unbooked: assessment.booked_unbooked,
     delivery_method_clean_lscs: assessment.delivery_method_clean_lscs,
   });
 
@@ -251,6 +257,130 @@ export const AssessmentResultPage = () => {
   }
 
   const inputHash = btoa(`${assessment.id}:${assessment.duration_labour_min}:${assessment.hiv_status_num}`).slice(0, 12);
+
+  const handleDownloadReport = () => {
+    setReportGenerating(true);
+    try {
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const margin = 18;
+      const contentW = pageW - margin * 2;
+      let y = margin;
+
+      const nl = (n = 4) => { y += n; };
+
+      const write = (text: string, size = 10, bold = false, r = 26, g = 37, b = 53) => {
+        doc.setFontSize(size);
+        doc.setFont('helvetica', bold ? 'bold' : 'normal');
+        doc.setTextColor(r, g, b);
+        const lines = doc.splitTextToSize(text, contentW) as string[];
+        lines.forEach((line: string) => {
+          if (y > 272) { doc.addPage(); y = margin; }
+          doc.text(line, margin, y);
+          y += size * 0.42;
+        });
+        y += 1;
+      };
+
+      const section = (title: string) => {
+        y += 4;
+        if (y > 265) { doc.addPage(); y = margin; }
+        doc.setDrawColor(74, 109, 140);
+        doc.line(margin, y, pageW - margin, y);
+        y += 5;
+        write(title, 11, true, 74, 109, 140);
+      };
+
+      // ── Header bar ──────────────────────────────────────────────────────────
+      doc.setFillColor(74, 109, 140);
+      doc.rect(0, 0, pageW, 24, 'F');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('MediFlow — PPH Risk Assessment Report', margin, 15);
+      y = 32;
+
+      write(`Generated: ${new Date().toLocaleString()}   |   Assessment ID: ${assessment.id}`, 8, false, 107, 122, 141);
+      nl(2);
+
+      // ── Patient information ──────────────────────────────────────────────────
+      section('PATIENT INFORMATION');
+      write(`Name:               ${patient.full_name}`);
+      write(`Patient ID:         ${patient.patient_id_number}`);
+      write(`Age:                ${patient.age} years`);
+      write(`Date of Admission:  ${formatDate(patient.date_of_admission)}`);
+
+      // ── Risk result ─────────────────────────────────────────────────────────
+      section('RISK ASSESSMENT RESULT');
+      write(`Assessed:    ${formatDateTime(assessment.created_at)}`);
+      write(`Assessed By: ${assessment.assessed_by_name}`);
+      nl(2);
+      write(`Predicted Severity: ${severityColours.label}    ·    Risk Level: ${assessment.risk_level}`, 12, true);
+      nl(2);
+      write(`Probability of Severe PPH:  ${formatProbability(probability)}`);
+      write(`Probability of No PPH:      ${formatProbability(assessment.probability_no_pph)}`);
+      if (confidenceData) {
+        write(
+          `95% Confidence Interval:    ${Math.round(confidenceData.ci_low * 100)}% – ` +
+          `${Math.round(confidenceData.ci_high * 100)}%  (${confidenceData.n_bootstrap} bootstrap iterations)`
+        );
+      }
+
+      // ── Clinical input data ──────────────────────────────────────────────────
+      section('CLINICAL INPUT DATA');
+      write(`Labour Duration:  ${formatMinutesToHours(assessment.duration_labour_min)} (${assessment.duration_labour_min} min)`);
+      write(`HIV Status:       ${formatHIVStatus(assessment.hiv_status_num)}`);
+      write(`Parity:           ${assessment.parity_num} previous live births`);
+      write(`Booking Status:   ${formatBookingStatus(assessment.booked_unbooked)}`);
+      write(`Delivery Method:  ${formatDeliveryMethod(assessment.delivery_method_clean_lscs)}`);
+
+      // ── Clinical decision support notes ─────────────────────────────────────
+      section('CLINICAL DECISION SUPPORT NOTES');
+      write('Ref: WHO/RHR/12.30  ·  NICE NG121', 8, false, 107, 122, 141);
+      nl(1);
+      if (clinicalNotes.length === 0) {
+        write('No specific clinical flags identified.');
+      } else {
+        clinicalNotes.forEach((note) => {
+          const tag = note.urgency === 'high' ? '[HIGH]   ' : note.urgency === 'medium' ? '[MEDIUM] ' : '[STD]    ';
+          write(`${tag}${note.note}`);
+          nl(1);
+        });
+      }
+
+      // ── Recommendations ──────────────────────────────────────────────────────
+      section('RECOMMENDATIONS');
+      if (isHigh) {
+        write(
+          'HIGH RISK: Ensure active management of the third stage of labour, have uterotonics ready, ' +
+          'establish IV access, ensure blood products are available, and consider consultant review.',
+          10, true
+        );
+      } else {
+        write('LOW RISK: Standard postpartum monitoring protocols apply. Observe for unexpected clinical changes.');
+      }
+
+      // ── Audit trail ──────────────────────────────────────────────────────────
+      section('AUDIT TRAIL');
+      write(`Model:              ${MODEL_VERSION} — Logistic Regression (5 features)`);
+      write(`Session/Input Hash: ${inputHash}`);
+      write(`Assessment ID:      ${assessment.id}`);
+
+      // ── Disclaimer ──────────────────────────────────────────────────────────
+      section('DISCLAIMER');
+      write(
+        'MediFlow is a supplementary clinical decision-support tool. Predictions are probabilistic ' +
+        'estimates derived from a dataset of 223 patients at Mpilo Central Hospital, Bulawayo, Zimbabwe ' +
+        '(DOI: 10.17632/k7z2yywdn5.1). This tool does not replace clinical judgement. ' +
+        'Patient data is processed on-premise and is not transmitted to third-party services.',
+        8, false, 107, 122, 141
+      );
+
+      doc.save(`PPH_Report_${patient.patient_id_number}_${assessment.id.slice(0, 8)}.pdf`);
+    } finally {
+      setReportGenerating(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -569,7 +699,20 @@ export const AssessmentResultPage = () => {
 
       {/* ═══ ACTION BUTTONS ═══ */}
       <div className="flex flex-wrap gap-3 pb-6">
-        <button className="btn btn-primary" onClick={() => navigate(`/patients/${id}`)}>View Patient Record</button>
+        <button className="btn btn-primary" onClick={() => navigate(`/patients/${id}`)}>← Patient Record</button>
+        <button
+          className="btn btn-outline"
+          onClick={handleDownloadReport}
+          disabled={reportGenerating}
+        >
+          {reportGenerating && (
+            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+          )}
+          {reportGenerating ? 'Generating…' : '⬇ Download PDF Report'}
+        </button>
         <button className="btn btn-outline" onClick={() => navigate(`/patients/${id}/assessments/new`)}>Run Another Assessment</button>
         <button className="btn btn-ghost" onClick={() => navigate(`/patients/${id}/trends`)}>View Temporal Trends</button>
         <button className="btn btn-ghost" onClick={() => navigate('/patients')}>Back to Patients List</button>

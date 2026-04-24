@@ -240,12 +240,20 @@ export const PatientDetailPage = () => {
                       <td>{formatDeliveryMethod(a.delivery_method_clean_lscs)}</td>
                       <td>{a.assessed_by_name}</td>
                       <td>
-                        <button
-                          className="btn btn-ghost btn-xs"
-                          onClick={() => setEditingAssessment(a)}
-                        >
-                          Edit
-                        </button>
+                        <div className="flex gap-1">
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            onClick={() => navigate(`/patients/${id}/assessments/${a.id}/result`)}
+                          >
+                            View
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            onClick={() => setEditingAssessment(a)}
+                          >
+                            Edit
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

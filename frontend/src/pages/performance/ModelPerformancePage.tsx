@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import Plot from 'react-plotly.js';
+import Plot from '../../lib/Plot';
 import type { AppDispatch } from '../../store';
 import { setPageTitle } from '../../store/slices/uiSlice';
 import { PageHeader } from '../../components/common/PageHeader';
