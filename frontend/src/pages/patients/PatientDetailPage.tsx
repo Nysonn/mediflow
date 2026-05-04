@@ -14,7 +14,7 @@ import { EditAssessmentModal } from '../../components/forms/EditAssessmentModal'
 import { EditPatientModal } from '../../components/forms/EditPatientModal';
 import { NewAssessmentModal } from '../../components/forms/NewAssessmentModal';
 import type { Assessment, Patient } from '../../types';
-import { PPH_COLOURS, getSeverityTier, getSeverityColours } from '../../theme/pphTheme';
+import { PPH_COLOURS, getSeverityColours } from '../../theme/pphTheme';
 import { getRelevantClinicalNotes } from '../../data/clinicalNotes';
 import {
   formatDate,

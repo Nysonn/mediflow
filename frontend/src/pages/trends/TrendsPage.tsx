@@ -54,6 +54,7 @@ export const TrendsPage = () => {
           hiv_status_num: a.hiv_status_num,
           parity_num: a.parity_num,
           booked_unbooked: a.booked_unbooked,
+          delivery_method_clean_FORCEPS: a.delivery_method_clean_forceps,
           delivery_method_clean_LSCS: a.delivery_method_clean_lscs,
         }).then((res) => ({
           visitLabel: `Visit ${i + 1}\n${formatDateTime(a.created_at).slice(0, 10)}`,
