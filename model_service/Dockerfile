@@ -9,6 +9,8 @@ RUN pip install --no-cache-dir --timeout=120 --retries=5 -r requirements.txt
 
 COPY . .
 
+RUN mkdir -p /app/model
+
 RUN curl -fsSL -o /app/model/final_lr_model.joblib \
     https://github.com/Nysonn/mediflow/releases/download/v1.0.1/final_lr_model.joblib
 
