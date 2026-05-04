@@ -17,6 +17,7 @@ interface BatchRow {
   hiv_status_num: number;
   parity_num: number;
   booked_unbooked: number;
+  delivery_method_clean_FORCEPS: number;
   delivery_method_clean_LSCS: number;
   rowIndex: number;
 }
@@ -29,7 +30,7 @@ interface BatchResult extends BatchRow {
   error?: string;
 }
 
-const REQUIRED_COLUMNS = ['duration_labour_min', 'hiv_status_num', 'parity_num', 'booked_unbooked', 'delivery_method_clean_LSCS'];
+const REQUIRED_COLUMNS = ['duration_labour_min', 'hiv_status_num', 'parity_num', 'booked_unbooked', 'delivery_method_clean_FORCEPS', 'delivery_method_clean_LSCS'];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,6 +43,7 @@ function validateRow(row: Record<string, unknown>, idx: number): { valid: BatchR
     hiv_status_num: Number(row['hiv_status_num']),
     parity_num: Number(row['parity_num']),
     booked_unbooked: Number(row['booked_unbooked']),
+    delivery_method_clean_FORCEPS: Number(row['delivery_method_clean_FORCEPS']),
     delivery_method_clean_LSCS: Number(row['delivery_method_clean_LSCS']),
     rowIndex: idx + 1,
   };
@@ -50,7 +52,9 @@ function validateRow(row: Record<string, unknown>, idx: number): { valid: BatchR
   if (![0, 1].includes(r.hiv_status_num)) return { valid: null, error: `Row ${idx + 1}: hiv_status_num must be 0 or 1` };
   if (r.parity_num < 0 || !Number.isInteger(r.parity_num)) return { valid: null, error: `Row ${idx + 1}: parity_num must be non-negative integer` };
   if (![0, 1].includes(r.booked_unbooked)) return { valid: null, error: `Row ${idx + 1}: booked_unbooked must be 0 or 1` };
+  if (![0, 1].includes(r.delivery_method_clean_FORCEPS)) return { valid: null, error: `Row ${idx + 1}: delivery_method_clean_FORCEPS must be 0 or 1` };
   if (![0, 1].includes(r.delivery_method_clean_LSCS)) return { valid: null, error: `Row ${idx + 1}: delivery_method_clean_LSCS must be 0 or 1` };
+  if (r.delivery_method_clean_FORCEPS === 1 && r.delivery_method_clean_LSCS === 1) return { valid: null, error: `Row ${idx + 1}: delivery_method cannot be both FORCEPS and LSCS` };
 
   return { valid: r, error: null };
 }
@@ -118,6 +122,7 @@ export const BatchPredictionPage = () => {
               hiv_status_num: row.hiv_status_num,
               parity_num: row.parity_num,
               booked_unbooked: row.booked_unbooked,
+              delivery_method_clean_FORCEPS: row.delivery_method_clean_FORCEPS,
               delivery_method_clean_LSCS: row.delivery_method_clean_LSCS,
             });
             const prob = res.risk;
@@ -161,14 +166,18 @@ export const BatchPredictionPage = () => {
 
   // Parity band categories for heatmap
   const parityBands = ['0–1', '2–3', '4+'];
-  const deliveryTypes = ['Vaginal', 'LSCS'];
+  const deliveryTypes = ['Vaginal', 'LSCS', 'Forceps'];
   const heatmapData: number[][] = deliveryTypes.map((_, dIdx) =>
     parityBands.map((_, pIdx) => {
       const pMin = [0, 2, 4][pIdx];
       const pMax = [1, 3, 99][pIdx];
-      const subset = results.filter(
-        (r) => r.delivery_method_clean_LSCS === dIdx && r.parity_num >= pMin && r.parity_num <= pMax
-      );
+      const subset = results.filter((r) => {
+        const isMatch =
+          dIdx === 0 ? (r.delivery_method_clean_FORCEPS === 0 && r.delivery_method_clean_LSCS === 0) :
+          dIdx === 1 ? r.delivery_method_clean_LSCS === 1 :
+          r.delivery_method_clean_FORCEPS === 1;
+        return isMatch && r.parity_num >= pMin && r.parity_num <= pMax;
+      });
       if (subset.length === 0) return 0;
       return subset.reduce((sum, r) => sum + r.probability_severe_pph, 0) / subset.length;
     })
@@ -197,6 +206,7 @@ export const BatchPredictionPage = () => {
       hiv_status_num: r.hiv_status_num,
       parity_num: r.parity_num,
       booked_unbooked: r.booked_unbooked,
+      delivery_method_clean_FORCEPS: r.delivery_method_clean_FORCEPS,
       delivery_method_clean_LSCS: r.delivery_method_clean_LSCS,
       probability_severe_pph: r.probability_severe_pph.toFixed(4),
       probability_no_pph: r.probability_no_pph.toFixed(4),
@@ -237,7 +247,7 @@ export const BatchPredictionPage = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <p className="text-base font-semibold" style={{ color: '#4A6D8C' }}>Drop .xlsx file here or click to browse</p>
-        <p className="text-xs text-base-content/50 mt-1">Required columns: duration_labour_min, hiv_status_num, parity_num, booked_unbooked, delivery_method_clean_LSCS · Max 500 rows</p>
+        <p className="text-xs text-base-content/50 mt-1">Required columns: duration_labour_min, hiv_status_num, parity_num, booked_unbooked, delivery_method_clean_FORCEPS, delivery_method_clean_LSCS · Max 500 rows</p>
         <a
           href="/sample_batch_template.xlsx"
           download
@@ -387,7 +397,7 @@ export const BatchPredictionPage = () => {
                       <th>HIV</th>
                       <th>Parity</th>
                       <th>Booked</th>
-                      <th>LSCS</th>
+                      <th>Delivery</th>
                       <th className="text-center">PPH Risk</th>
                       <th className="text-center">Severity</th>
                     </tr>
@@ -402,7 +412,7 @@ export const BatchPredictionPage = () => {
                           <td>{r.hiv_status_num === 1 ? 'Pos' : 'Neg'}</td>
                           <td>{r.parity_num}</td>
                           <td>{r.booked_unbooked === 0 ? 'Booked' : 'Unbooked'}</td>
-                          <td>{r.delivery_method_clean_LSCS === 1 ? 'Yes' : 'No'}</td>
+                          <td>{r.delivery_method_clean_LSCS === 1 ? 'LSCS' : r.delivery_method_clean_FORCEPS === 1 ? 'Forceps' : 'Vaginal'}</td>
                           <td className="text-center font-mono font-semibold">{Math.round(r.probability_severe_pph * 100)}%</td>
                           <td className="text-center">
                             {r.error ? (

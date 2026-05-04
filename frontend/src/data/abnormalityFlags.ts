@@ -22,6 +22,12 @@ export interface AbnormalityFlag {
 
 export const ABNORMALITY_FLAGS: AbnormalityFlag[] = [
   {
+    feature: 'delivery_method_clean_forceps',
+    condition: (v) => v === 1,
+    severity: 'amber',
+    note: 'Instrumental (forceps) delivery — increased perineal trauma risk',
+  },
+  {
     feature: 'delivery_method_clean_lscs',
     condition: (v) => v === 1,
     severity: 'red',

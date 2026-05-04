@@ -37,6 +37,7 @@ export interface Assessment {
   hiv_status_num: number;
   parity_num: number;
   booked_unbooked: number;
+  delivery_method_clean_forceps: number;
   delivery_method_clean_lscs: number;
   prediction: number;
   probability_no_pph: number;
@@ -99,6 +100,7 @@ export interface CreateAssessmentInput {
   hiv_status_num: number;
   parity_num: number;
   booked_unbooked: number;
+  delivery_method_clean_forceps: number;
   delivery_method_clean_lscs: number;
 }
 
@@ -113,6 +115,7 @@ export interface CreatePatientWithAssessmentInput {
   hiv_status_num: number;
   parity_num: number;
   booked_unbooked: number;
+  delivery_method_clean_forceps: number;
   delivery_method_clean_lscs: number;
 }
 
@@ -125,6 +128,7 @@ export interface UpdatePatientWithAssessmentInput {
   hiv_status_num?: number;
   parity_num?: number;
   booked_unbooked?: number;
+  delivery_method_clean_forceps?: number;
   delivery_method_clean_lscs?: number;
 }
 

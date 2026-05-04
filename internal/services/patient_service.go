@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"mediflow/internal/models"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"mediflow/internal/models"
 )
 
 // PatientService handles all database operations for patients and their assessments.
@@ -167,7 +168,7 @@ func (s *PatientService) GetAllPatients(
 			SELECT DISTINCT ON (a.patient_id)
 				a.id, a.patient_id, a.assessed_by_user_id,
 				a.duration_labour_min, a.hiv_status_num, a.parity_num,
-				a.booked_unbooked, a.delivery_method_clean_lscs,
+				a.booked_unbooked, a.delivery_method_clean_forceps, a.delivery_method_clean_lscs,
 				a.prediction, a.probability_no_pph, a.probability_severe_pph,
 				a.risk_level, a.created_at,
 				COALESCE(u.full_name, '') AS assessed_by_name
@@ -185,7 +186,7 @@ func (s *PatientService) GetAllPatients(
 				if aRows.Scan(
 					&a.ID, &a.PatientID, &a.AssessedByUserID,
 					&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
-					&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+					&a.BookedUnbooked, &a.DeliveryMethodCleanForceps, &a.DeliveryMethodCleanLSCS,
 					&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
 					&a.RiskLevel, &createdAt,
 					&a.AssessedByName,
@@ -281,7 +282,7 @@ func (s *PatientService) GetPatientWithAssessments(
 		SELECT
 			a.id, a.patient_id, a.assessed_by_user_id,
 			a.duration_labour_min, a.hiv_status_num, a.parity_num,
-			a.booked_unbooked, a.delivery_method_clean_lscs,
+			a.booked_unbooked, a.delivery_method_clean_forceps, a.delivery_method_clean_lscs,
 			a.prediction, a.probability_no_pph, a.probability_severe_pph,
 			a.risk_level, a.created_at,
 			COALESCE(u.full_name, '') AS assessed_by_name
@@ -303,7 +304,7 @@ func (s *PatientService) GetPatientWithAssessments(
 		if err := rows.Scan(
 			&a.ID, &a.PatientID, &a.AssessedByUserID,
 			&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
-			&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+			&a.BookedUnbooked, &a.DeliveryMethodCleanForceps, &a.DeliveryMethodCleanLSCS,
 			&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
 			&a.RiskLevel, &createdAt,
 			&a.AssessedByName,

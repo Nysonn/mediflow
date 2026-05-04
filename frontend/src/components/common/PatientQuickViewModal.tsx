@@ -59,7 +59,7 @@ const AssessmentCard = ({ a, index, total }: { a: Assessment; index: number; tot
       <Field label="HIV Status" value={formatHIVStatus(a.hiv_status_num)} />
       <Field label="Parity" value={a.parity_num} />
       <Field label="Booking Status" value={formatBookingStatus(a.booked_unbooked)} />
-      <Field label="Delivery Method" value={formatDeliveryMethod(a.delivery_method_clean_lscs)} />
+      <Field label="Delivery Method" value={formatDeliveryMethod(a.delivery_method_clean_lscs, a.delivery_method_clean_forceps)} />
       <Field label="Assessed By" value={(a as Assessment & { assessed_by_name?: string }).assessed_by_name ?? '—'} />
     </div>
   </div>

@@ -6,3 +6,5 @@ vendor/
 *.log
 .DS_Store
 README.md
+
+.venv

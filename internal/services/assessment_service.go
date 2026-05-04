@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"time"
 
+	"mediflow/internal/models"
+
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"mediflow/internal/models"
 )
 
 // AssessmentService handles all database operations for assessments and model predictions.
@@ -36,11 +37,12 @@ func (s *AssessmentService) CreateAssessment(
 
 	// Build the model request from input fields.
 	predictReq := models.ModelPredictRequest{
-		DurationLabourMin:       input.DurationLabourMin,
-		HIVStatusNum:            input.HIVStatusNum,
-		ParityNum:               input.ParityNum,
-		BookedUnbooked:          input.BookedUnbooked,
-		DeliveryMethodCleanLSCS: input.DeliveryMethodCleanLSCS,
+		DurationLabourMin:          input.DurationLabourMin,
+		HIVStatusNum:               input.HIVStatusNum,
+		ParityNum:                  input.ParityNum,
+		BookedUnbooked:             input.BookedUnbooked,
+		DeliveryMethodCleanForceps: input.DeliveryMethodCleanForceps,
+		DeliveryMethodCleanLSCS:    input.DeliveryMethodCleanLSCS,
 	}
 
 	result, err := s.modelService.Predict(ctx, predictReq)
@@ -52,15 +54,15 @@ func (s *AssessmentService) CreateAssessment(
 		INSERT INTO assessments (
 			patient_id, assessed_by_user_id,
 			duration_labour_min, hiv_status_num, parity_num,
-			booked_unbooked, delivery_method_clean_lscs,
+			booked_unbooked, delivery_method_clean_forceps, delivery_method_clean_lscs,
 			prediction, probability_no_pph, probability_severe_pph,
 			risk_level
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
 		)
 		RETURNING id, patient_id, assessed_by_user_id,
 			duration_labour_min, hiv_status_num, parity_num,
-			booked_unbooked, delivery_method_clean_lscs,
+			booked_unbooked, delivery_method_clean_forceps, delivery_method_clean_lscs,
 			prediction, probability_no_pph, probability_severe_pph,
 			risk_level, created_at`
 
@@ -68,13 +70,13 @@ func (s *AssessmentService) CreateAssessment(
 	err = s.db.QueryRow(ctx, query,
 		patientID, assessedByUserID,
 		input.DurationLabourMin, input.HIVStatusNum, input.ParityNum,
-		input.BookedUnbooked, input.DeliveryMethodCleanLSCS,
+		input.BookedUnbooked, input.DeliveryMethodCleanForceps, input.DeliveryMethodCleanLSCS,
 		result.Prediction, result.ProbabilityNoPPH, result.ProbabilitySeverePPH,
 		result.RiskLevel,
 	).Scan(
 		&a.ID, &a.PatientID, &a.AssessedByUserID,
 		&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
-		&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+		&a.BookedUnbooked, &a.DeliveryMethodCleanForceps, &a.DeliveryMethodCleanLSCS,
 		&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
 		&a.RiskLevel, &a.CreatedAt,
 	)
@@ -98,7 +100,7 @@ func (s *AssessmentService) GetAssessmentByID(
 		SELECT
 			a.id, a.patient_id, a.assessed_by_user_id,
 			a.duration_labour_min, a.hiv_status_num, a.parity_num,
-			a.booked_unbooked, a.delivery_method_clean_lscs,
+			a.booked_unbooked, a.delivery_method_clean_forceps, a.delivery_method_clean_lscs,
 			a.prediction, a.probability_no_pph, a.probability_severe_pph,
 			a.risk_level, a.created_at,
 			COALESCE(u.full_name, '') AS assessed_by_name
@@ -111,7 +113,7 @@ func (s *AssessmentService) GetAssessmentByID(
 	err := s.db.QueryRow(ctx, query, id).Scan(
 		&a.ID, &a.PatientID, &a.AssessedByUserID,
 		&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
-		&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+		&a.BookedUnbooked, &a.DeliveryMethodCleanForceps, &a.DeliveryMethodCleanLSCS,
 		&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
 		&a.RiskLevel, &createdAt,
 		&a.AssessedByName,
@@ -136,7 +138,7 @@ func (s *AssessmentService) GetPatientAssessments(
 		SELECT
 			a.id, a.patient_id, a.assessed_by_user_id,
 			a.duration_labour_min, a.hiv_status_num, a.parity_num,
-			a.booked_unbooked, a.delivery_method_clean_lscs,
+			a.booked_unbooked, a.delivery_method_clean_forceps, a.delivery_method_clean_lscs,
 			a.prediction, a.probability_no_pph, a.probability_severe_pph,
 			a.risk_level, a.created_at,
 			COALESCE(u.full_name, '') AS assessed_by_name
@@ -158,7 +160,7 @@ func (s *AssessmentService) GetPatientAssessments(
 		if err := rows.Scan(
 			&a.ID, &a.PatientID, &a.AssessedByUserID,
 			&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
-			&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+			&a.BookedUnbooked, &a.DeliveryMethodCleanForceps, &a.DeliveryMethodCleanLSCS,
 			&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
 			&a.RiskLevel, &createdAt,
 			&a.AssessedByName,
@@ -252,7 +254,7 @@ func (s *AssessmentService) GetClinicianStats(
 			SELECT
 				a.id, a.patient_id, a.assessed_by_user_id,
 				a.duration_labour_min, a.hiv_status_num, a.parity_num,
-				a.booked_unbooked, a.delivery_method_clean_lscs,
+				a.booked_unbooked, a.delivery_method_clean_forceps, a.delivery_method_clean_lscs,
 				a.prediction, a.probability_no_pph, a.probability_severe_pph,
 				a.risk_level, a.created_at,
 				COALESCE(u.full_name, '') AS assessed_by_name
@@ -272,7 +274,7 @@ func (s *AssessmentService) GetClinicianStats(
 			if err := aRows.Scan(
 				&a.ID, &a.PatientID, &a.AssessedByUserID,
 				&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
-				&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+				&a.BookedUnbooked, &a.DeliveryMethodCleanForceps, &a.DeliveryMethodCleanLSCS,
 				&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
 				&a.RiskLevel, &createdAt,
 				&a.AssessedByName,
@@ -304,11 +306,12 @@ func (s *AssessmentService) UpdateAssessment(
 	}
 
 	result, err := s.modelService.Predict(ctx, models.ModelPredictRequest{
-		DurationLabourMin:       input.DurationLabourMin,
-		HIVStatusNum:            input.HIVStatusNum,
-		ParityNum:               input.ParityNum,
-		BookedUnbooked:          input.BookedUnbooked,
-		DeliveryMethodCleanLSCS: input.DeliveryMethodCleanLSCS,
+		DurationLabourMin:          input.DurationLabourMin,
+		HIVStatusNum:               input.HIVStatusNum,
+		ParityNum:                  input.ParityNum,
+		BookedUnbooked:             input.BookedUnbooked,
+		DeliveryMethodCleanForceps: input.DeliveryMethodCleanForceps,
+		DeliveryMethodCleanLSCS:    input.DeliveryMethodCleanLSCS,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("model prediction failed: %w", err)
@@ -317,19 +320,20 @@ func (s *AssessmentService) UpdateAssessment(
 	var id string
 	err = s.db.QueryRow(ctx, `
 		UPDATE assessments
-		SET duration_labour_min        = $1,
-		    hiv_status_num             = $2,
-		    parity_num                 = $3,
-		    booked_unbooked            = $4,
-		    delivery_method_clean_lscs = $5,
-		    prediction                 = $6,
-		    probability_no_pph         = $7,
-		    probability_severe_pph     = $8,
-		    risk_level                 = $9
-		WHERE id = $10
+		SET duration_labour_min           = $1,
+		    hiv_status_num                = $2,
+		    parity_num                    = $3,
+		    booked_unbooked               = $4,
+		    delivery_method_clean_forceps = $5,
+		    delivery_method_clean_lscs    = $6,
+		    prediction                    = $7,
+		    probability_no_pph            = $8,
+		    probability_severe_pph        = $9,
+		    risk_level                    = $10
+		WHERE id = $11
 		RETURNING id`,
 		input.DurationLabourMin, input.HIVStatusNum, input.ParityNum,
-		input.BookedUnbooked, input.DeliveryMethodCleanLSCS,
+		input.BookedUnbooked, input.DeliveryMethodCleanForceps, input.DeliveryMethodCleanLSCS,
 		result.Prediction, result.ProbabilityNoPPH, result.ProbabilitySeverePPH,
 		result.RiskLevel,
 		assessmentID,
@@ -355,11 +359,12 @@ func (s *AssessmentService) CreatePatientWithAssessment(
 
 	// Call the model first — no DB writes happen until this succeeds.
 	result, err := s.modelService.Predict(ctx, models.ModelPredictRequest{
-		DurationLabourMin:       assessmentInput.DurationLabourMin,
-		HIVStatusNum:            assessmentInput.HIVStatusNum,
-		ParityNum:               assessmentInput.ParityNum,
-		BookedUnbooked:          assessmentInput.BookedUnbooked,
-		DeliveryMethodCleanLSCS: assessmentInput.DeliveryMethodCleanLSCS,
+		DurationLabourMin:          assessmentInput.DurationLabourMin,
+		HIVStatusNum:               assessmentInput.HIVStatusNum,
+		ParityNum:                  assessmentInput.ParityNum,
+		BookedUnbooked:             assessmentInput.BookedUnbooked,
+		DeliveryMethodCleanForceps: assessmentInput.DeliveryMethodCleanForceps,
+		DeliveryMethodCleanLSCS:    assessmentInput.DeliveryMethodCleanLSCS,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("model prediction failed: %w", err)
@@ -395,21 +400,21 @@ func (s *AssessmentService) CreatePatientWithAssessment(
 		INSERT INTO assessments (
 			patient_id, assessed_by_user_id,
 			duration_labour_min, hiv_status_num, parity_num,
-			booked_unbooked, delivery_method_clean_lscs,
+			booked_unbooked, delivery_method_clean_forceps, delivery_method_clean_lscs,
 			prediction, probability_no_pph, probability_severe_pph, risk_level
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING id, patient_id, assessed_by_user_id,
 			duration_labour_min, hiv_status_num, parity_num,
-			booked_unbooked, delivery_method_clean_lscs,
+			booked_unbooked, delivery_method_clean_forceps, delivery_method_clean_lscs,
 			prediction, probability_no_pph, probability_severe_pph, risk_level, created_at`,
 		p.ID, addedByUserID,
 		assessmentInput.DurationLabourMin, assessmentInput.HIVStatusNum, assessmentInput.ParityNum,
-		assessmentInput.BookedUnbooked, assessmentInput.DeliveryMethodCleanLSCS,
+		assessmentInput.BookedUnbooked, assessmentInput.DeliveryMethodCleanForceps, assessmentInput.DeliveryMethodCleanLSCS,
 		result.Prediction, result.ProbabilityNoPPH, result.ProbabilitySeverePPH, result.RiskLevel,
 	).Scan(
 		&a.ID, &a.PatientID, &a.AssessedByUserID,
 		&a.DurationLabourMin, &a.HIVStatusNum, &a.ParityNum,
-		&a.BookedUnbooked, &a.DeliveryMethodCleanLSCS,
+		&a.BookedUnbooked, &a.DeliveryMethodCleanForceps, &a.DeliveryMethodCleanLSCS,
 		&a.Prediction, &a.ProbabilityNoPPH, &a.ProbabilitySeverePPH,
 		&a.RiskLevel, &a.CreatedAt,
 	)

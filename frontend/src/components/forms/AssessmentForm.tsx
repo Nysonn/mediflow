@@ -7,6 +7,9 @@ import type { ApiError } from '../../types';
 
 interface AssessmentFormProps {
   patientId: string;
+  /** Called with the new assessment ID after a successful submission. When
+   * provided the form will NOT navigate automatically — the caller handles it. */
+  onSuccess?: (assessmentId: string) => void;
 }
 
 interface FormState {
@@ -14,7 +17,7 @@ interface FormState {
   hiv_status_num: string;
   parity_num: string;
   booked_unbooked: string;
-  delivery_method_clean_lscs: string;
+  delivery_method: string;
 }
 
 const EMPTY: FormState = {
@@ -22,10 +25,10 @@ const EMPTY: FormState = {
   hiv_status_num: '',
   parity_num: '',
   booked_unbooked: '',
-  delivery_method_clean_lscs: '',
+  delivery_method: '',
 };
 
-export const AssessmentForm = ({ patientId }: AssessmentFormProps) => {
+export const AssessmentForm = ({ patientId, onSuccess }: AssessmentFormProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -38,11 +41,16 @@ export const AssessmentForm = ({ patientId }: AssessmentFormProps) => {
       hiv_status_num: number;
       parity_num: number;
       booked_unbooked: number;
+      delivery_method_clean_forceps: number;
       delivery_method_clean_lscs: number;
     }) => patientsApi.update(patientId, input),
     onSuccess: ({ assessment }) => {
       queryClient.invalidateQueries({ queryKey: ['patients', patientId] });
-      navigate(`/patients/${patientId}/assessments/${assessment.id}/result`);
+      if (onSuccess) {
+        onSuccess(assessment.id);
+      } else {
+        navigate(`/patients/${patientId}/assessments/${assessment.id}/result`);
+      }
     },
     onError: (err: unknown) => {
       const status = (err as { response?: { status?: number; data?: ApiError } })?.response?.status;
@@ -75,7 +83,7 @@ export const AssessmentForm = ({ patientId }: AssessmentFormProps) => {
     else if (isNaN(parity) || parity < 0 || parity > 20)
       errors.parity_num = 'Parity must be between 0 and 20';
     if (form.booked_unbooked === '') errors.booked_unbooked = 'Booking status is required';
-    if (form.delivery_method_clean_lscs === '') errors.delivery_method_clean_lscs = 'Delivery method is required';
+    if (form.delivery_method === '') errors.delivery_method = 'Delivery method is required';
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -89,7 +97,8 @@ export const AssessmentForm = ({ patientId }: AssessmentFormProps) => {
       hiv_status_num: parseInt(form.hiv_status_num, 10),
       parity_num: parseInt(form.parity_num, 10),
       booked_unbooked: parseInt(form.booked_unbooked, 10),
-      delivery_method_clean_lscs: parseInt(form.delivery_method_clean_lscs, 10),
+      delivery_method_clean_forceps: form.delivery_method === 'forceps' ? 1 : 0,
+      delivery_method_clean_lscs: form.delivery_method === 'lscs' ? 1 : 0,
     });
   };
 
@@ -101,7 +110,7 @@ export const AssessmentForm = ({ patientId }: AssessmentFormProps) => {
     form.hiv_status_num === '' &&
     form.parity_num === '' &&
     form.booked_unbooked === '' &&
-    form.delivery_method_clean_lscs === '';
+    form.delivery_method === '';
 
   const err = (f: string) => fieldErrors[f];
 
@@ -225,20 +234,21 @@ export const AssessmentForm = ({ patientId }: AssessmentFormProps) => {
           <span className="label-text font-medium">Delivery Method *</span>
         </label>
         <select
-          className={`select select-bordered ${err('delivery_method_clean_lscs') ? 'select-error' : ''}`}
-          value={form.delivery_method_clean_lscs}
-          onChange={setField('delivery_method_clean_lscs')}
+          className={`select select-bordered ${err('delivery_method') ? 'select-error' : ''}`}
+          value={form.delivery_method}
+          onChange={setField('delivery_method')}
         >
           <option value="" disabled>Select…</option>
-          <option value="0">Normal / Vaginal (0)</option>
-          <option value="1">LSCS / Caesarean Section (1)</option>
+          <option value="nvd">Normal / Vaginal (NVD)</option>
+          <option value="lscs">LSCS / Caesarean Section</option>
+          <option value="forceps">Instrumental / Forceps</option>
         </select>
         <label className="label">
-          {err('delivery_method_clean_lscs') ? (
-            <span className="label-text-alt text-error">{err('delivery_method_clean_lscs')}</span>
+          {err('delivery_method') ? (
+            <span className="label-text-alt text-error">{err('delivery_method')}</span>
           ) : (
             <span className="label-text-alt text-base-content/50">
-              Lower Segment Caesarean Section or normal vaginal delivery
+              Normal vaginal delivery, Caesarean section, or instrumental delivery
             </span>
           )}
         </label>

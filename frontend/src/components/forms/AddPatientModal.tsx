@@ -21,7 +21,7 @@ interface AssessmentForm {
   hiv_status_num: string;
   parity_num: string;
   booked_unbooked: string;
-  delivery_method_clean_lscs: string;
+  delivery_method: string;
 }
 
 const INITIAL_PATIENT: PatientForm = {
@@ -36,7 +36,7 @@ const INITIAL_ASSESSMENT: AssessmentForm = {
   hiv_status_num: '',
   parity_num: '',
   booked_unbooked: '',
-  delivery_method_clean_lscs: '',
+  delivery_method: '',
 };
 
 const inputCls = 'w-full pl-9 pr-3 py-2 rounded-lg text-sm text-gray-800 outline-none transition-all';
@@ -153,7 +153,7 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
     if (assessment.parity_num === '') errors.parity_num = 'Required';
     else if (isNaN(parity) || parity < 0 || parity > 20) errors.parity_num = 'Must be 0–20';
     if (assessment.booked_unbooked === '') errors.booked_unbooked = 'Required';
-    if (assessment.delivery_method_clean_lscs === '') errors.delivery_method_clean_lscs = 'Required';
+    if (assessment.delivery_method === '') errors.delivery_method = 'Required';
     setAssessmentErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -175,7 +175,8 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
       hiv_status_num: parseInt(assessment.hiv_status_num, 10),
       parity_num: parseInt(assessment.parity_num, 10),
       booked_unbooked: parseInt(assessment.booked_unbooked, 10),
-      delivery_method_clean_lscs: parseInt(assessment.delivery_method_clean_lscs, 10),
+      delivery_method_clean_forceps: assessment.delivery_method === 'forceps' ? 1 : 0,
+      delivery_method_clean_lscs: assessment.delivery_method === 'lscs' ? 1 : 0,
     });
   };
 
@@ -426,16 +427,17 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
           <label className="block text-xs font-semibold text-gray-600 mb-1">Delivery Method *</label>
           <select
             className={selectCls}
-            style={{ ...inputStyle, ...errStyle(!!ae('delivery_method_clean_lscs')) }}
-            value={assessment.delivery_method_clean_lscs}
-            onChange={setA('delivery_method_clean_lscs')}
+            style={{ ...inputStyle, ...errStyle(!!ae('delivery_method')) }}
+            value={assessment.delivery_method}
+            onChange={setA('delivery_method')}
             onFocus={focusHandler} onBlur={blurHandler}
           >
             <option value="">Select…</option>
-            <option value="0">Vaginal</option>
-            <option value="1">LSCS / Caesarean</option>
+            <option value="nvd">Vaginal (NVD)</option>
+            <option value="lscs">LSCS / Caesarean</option>
+            <option value="forceps">Instrumental / Forceps</option>
           </select>
-          {ae('delivery_method_clean_lscs') && <p className="text-[10px] text-red-500 mt-0.5">{ae('delivery_method_clean_lscs')}</p>}
+          {ae('delivery_method') && <p className="text-[10px] text-red-500 mt-0.5">{ae('delivery_method')}</p>}
         </div>
       </div>
 

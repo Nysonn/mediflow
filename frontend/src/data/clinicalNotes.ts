@@ -82,6 +82,7 @@ export function getRelevantClinicalNotes(assessment: {
   hiv_status_num: number;
   parity_num: number;
   booked_unbooked: number;
+  delivery_method_clean_forceps: number;
   delivery_method_clean_lscs: number;
 }): ClinicalNote[] {
   const notes: ClinicalNote[] = [];
@@ -89,6 +90,9 @@ export function getRelevantClinicalNotes(assessment: {
   // Delivery method
   if (assessment.delivery_method_clean_lscs === 1) {
     const n = CLINICAL_NOTES_LOOKUP.delivery_method_clean_lscs.find(n => n.condition === 'lscs');
+    if (n) notes.push(n);
+  } else if (assessment.delivery_method_clean_forceps === 1) {
+    const n = CLINICAL_NOTES_LOOKUP.delivery_method_clean_lscs.find(n => n.condition === 'forceps');
     if (n) notes.push(n);
   } else {
     const n = CLINICAL_NOTES_LOOKUP.delivery_method_clean_lscs.find(n => n.condition === 'not_lscs');

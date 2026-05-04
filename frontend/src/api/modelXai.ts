@@ -1,11 +1,12 @@
 import api from './axios';
 
-/** Request body for /explain and /confidence — same 5 model features as /predict */
+/** Request body for /explain and /confidence — same 6 model features as /predict */
 export interface ModelXAIRequest {
   duration_labour_min: number;
   hiv_status_num: number;
   parity_num: number;
   booked_unbooked: number;
+  delivery_method_clean_FORCEPS: number;
   delivery_method_clean_LSCS: number;
 }
 

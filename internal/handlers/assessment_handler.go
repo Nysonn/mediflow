@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
 	"mediflow/internal/models"
 	"mediflow/internal/services"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 )
 
 // AssessmentHandler handles all assessment-related routes.
@@ -32,11 +33,12 @@ func NewAssessmentHandler(
 
 // createAssessmentRequest is the JSON body for POST /api/v1/patients/:id/assessments.
 type createAssessmentRequest struct {
-	DurationLabourMin       float64 `json:"duration_labour_min"`
-	HIVStatusNum            float64 `json:"hiv_status_num"`
-	ParityNum               int     `json:"parity_num"`
-	BookedUnbooked          int     `json:"booked_unbooked"`
-	DeliveryMethodCleanLSCS int     `json:"delivery_method_clean_lscs"`
+	DurationLabourMin          float64 `json:"duration_labour_min"`
+	HIVStatusNum               float64 `json:"hiv_status_num"`
+	ParityNum                  int     `json:"parity_num"`
+	BookedUnbooked             int     `json:"booked_unbooked"`
+	DeliveryMethodCleanForceps int     `json:"delivery_method_clean_forceps"`
+	DeliveryMethodCleanLSCS    int     `json:"delivery_method_clean_lscs"`
 }
 
 // CreateAssessment runs the ML prediction and saves the result.
@@ -68,8 +70,14 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 	if req.BookedUnbooked != 0 && req.BookedUnbooked != 1 {
 		fieldErrors["booked_unbooked"] = "Booking status must be 0 (Booked) or 1 (Unbooked)"
 	}
+	if req.DeliveryMethodCleanForceps != 0 && req.DeliveryMethodCleanForceps != 1 {
+		fieldErrors["delivery_method_clean_forceps"] = "Forceps flag must be 0 or 1"
+	}
 	if req.DeliveryMethodCleanLSCS != 0 && req.DeliveryMethodCleanLSCS != 1 {
-		fieldErrors["delivery_method_clean_lscs"] = "Delivery method must be 0 (Vaginal) or 1 (LSCS)"
+		fieldErrors["delivery_method_clean_lscs"] = "LSCS flag must be 0 or 1"
+	}
+	if req.DeliveryMethodCleanForceps == 1 && req.DeliveryMethodCleanLSCS == 1 {
+		fieldErrors["delivery_method_clean_lscs"] = "Delivery method cannot be both LSCS and Forceps"
 	}
 
 	if len(fieldErrors) > 0 {
@@ -79,11 +87,12 @@ func (h *AssessmentHandler) CreateAssessment(c *gin.Context) {
 
 	userID, _ := c.Get("userID")
 	input := models.CreateAssessmentInput{
-		DurationLabourMin:       req.DurationLabourMin,
-		HIVStatusNum:            req.HIVStatusNum,
-		ParityNum:               req.ParityNum,
-		BookedUnbooked:          req.BookedUnbooked,
-		DeliveryMethodCleanLSCS: req.DeliveryMethodCleanLSCS,
+		DurationLabourMin:          req.DurationLabourMin,
+		HIVStatusNum:               req.HIVStatusNum,
+		ParityNum:                  req.ParityNum,
+		BookedUnbooked:             req.BookedUnbooked,
+		DeliveryMethodCleanForceps: req.DeliveryMethodCleanForceps,
+		DeliveryMethodCleanLSCS:    req.DeliveryMethodCleanLSCS,
 	}
 
 	assessment, err := h.assessmentService.CreateAssessment(
@@ -118,11 +127,12 @@ type createPatientWithAssessmentRequest struct {
 	Age             int    `json:"age"`
 	DateOfAdmission string `json:"date_of_admission"` // "YYYY-MM-DD"
 	// Assessment fields
-	DurationLabourMin       float64 `json:"duration_labour_min"`
-	HIVStatusNum            float64 `json:"hiv_status_num"`
-	ParityNum               int     `json:"parity_num"`
-	BookedUnbooked          int     `json:"booked_unbooked"`
-	DeliveryMethodCleanLSCS int     `json:"delivery_method_clean_lscs"`
+	DurationLabourMin          float64 `json:"duration_labour_min"`
+	HIVStatusNum               float64 `json:"hiv_status_num"`
+	ParityNum                  int     `json:"parity_num"`
+	BookedUnbooked             int     `json:"booked_unbooked"`
+	DeliveryMethodCleanForceps int     `json:"delivery_method_clean_forceps"`
+	DeliveryMethodCleanLSCS    int     `json:"delivery_method_clean_lscs"`
 }
 
 // CreatePatientWithAssessment registers a new patient and runs the first assessment atomically.
@@ -182,8 +192,14 @@ func (h *AssessmentHandler) CreatePatientWithAssessment(c *gin.Context) {
 	if req.BookedUnbooked != 0 && req.BookedUnbooked != 1 {
 		fieldErrors["booked_unbooked"] = "Booking status must be 0 (Booked) or 1 (Unbooked)"
 	}
+	if req.DeliveryMethodCleanForceps != 0 && req.DeliveryMethodCleanForceps != 1 {
+		fieldErrors["delivery_method_clean_forceps"] = "Forceps flag must be 0 or 1"
+	}
 	if req.DeliveryMethodCleanLSCS != 0 && req.DeliveryMethodCleanLSCS != 1 {
-		fieldErrors["delivery_method_clean_lscs"] = "Delivery method must be 0 (Vaginal) or 1 (LSCS)"
+		fieldErrors["delivery_method_clean_lscs"] = "LSCS flag must be 0 or 1"
+	}
+	if req.DeliveryMethodCleanForceps == 1 && req.DeliveryMethodCleanLSCS == 1 {
+		fieldErrors["delivery_method_clean_lscs"] = "Delivery method cannot be both LSCS and Forceps"
 	}
 
 	if len(fieldErrors) > 0 {
@@ -199,11 +215,12 @@ func (h *AssessmentHandler) CreatePatientWithAssessment(c *gin.Context) {
 		DateOfAdmission: doa,
 	}
 	assessmentInput := models.CreateAssessmentInput{
-		DurationLabourMin:       req.DurationLabourMin,
-		HIVStatusNum:            req.HIVStatusNum,
-		ParityNum:               req.ParityNum,
-		BookedUnbooked:          req.BookedUnbooked,
-		DeliveryMethodCleanLSCS: req.DeliveryMethodCleanLSCS,
+		DurationLabourMin:          req.DurationLabourMin,
+		HIVStatusNum:               req.HIVStatusNum,
+		ParityNum:                  req.ParityNum,
+		BookedUnbooked:             req.BookedUnbooked,
+		DeliveryMethodCleanForceps: req.DeliveryMethodCleanForceps,
+		DeliveryMethodCleanLSCS:    req.DeliveryMethodCleanLSCS,
 	}
 
 	patient, assessment, err := h.assessmentService.CreatePatientWithAssessment(
@@ -262,8 +279,14 @@ func (h *AssessmentHandler) UpdateAssessment(c *gin.Context) {
 	if req.BookedUnbooked != 0 && req.BookedUnbooked != 1 {
 		fieldErrors["booked_unbooked"] = "Booking status must be 0 (Booked) or 1 (Unbooked)"
 	}
+	if req.DeliveryMethodCleanForceps != 0 && req.DeliveryMethodCleanForceps != 1 {
+		fieldErrors["delivery_method_clean_forceps"] = "Forceps flag must be 0 or 1"
+	}
 	if req.DeliveryMethodCleanLSCS != 0 && req.DeliveryMethodCleanLSCS != 1 {
-		fieldErrors["delivery_method_clean_lscs"] = "Delivery method must be 0 (Vaginal) or 1 (LSCS)"
+		fieldErrors["delivery_method_clean_lscs"] = "LSCS flag must be 0 or 1"
+	}
+	if req.DeliveryMethodCleanForceps == 1 && req.DeliveryMethodCleanLSCS == 1 {
+		fieldErrors["delivery_method_clean_lscs"] = "Delivery method cannot be both LSCS and Forceps"
 	}
 	if len(fieldErrors) > 0 {
 		ValidationError(c, fieldErrors)
@@ -287,11 +310,12 @@ func (h *AssessmentHandler) UpdateAssessment(c *gin.Context) {
 	}
 
 	input := models.CreateAssessmentInput{
-		DurationLabourMin:       req.DurationLabourMin,
-		HIVStatusNum:            req.HIVStatusNum,
-		ParityNum:               req.ParityNum,
-		BookedUnbooked:          req.BookedUnbooked,
-		DeliveryMethodCleanLSCS: req.DeliveryMethodCleanLSCS,
+		DurationLabourMin:          req.DurationLabourMin,
+		HIVStatusNum:               req.HIVStatusNum,
+		ParityNum:                  req.ParityNum,
+		BookedUnbooked:             req.BookedUnbooked,
+		DeliveryMethodCleanForceps: req.DeliveryMethodCleanForceps,
+		DeliveryMethodCleanLSCS:    req.DeliveryMethodCleanLSCS,
 	}
 
 	updated, err := h.assessmentService.UpdateAssessment(c.Request.Context(), assessmentID, input)

@@ -50,5 +50,5 @@ export const formatHIVStatus = (value: number): string =>
 export const formatBookingStatus = (value: number): string =>
   value === 1 ? 'Unbooked' : 'Booked';
 
-export const formatDeliveryMethod = (value: number): string =>
-  value === 1 ? 'LSCS / Caesarean' : 'Normal / Vaginal';
+export const formatDeliveryMethod = (lscs: number, forceps = 0): string =>
+  lscs === 1 ? 'LSCS / Caesarean' : forceps === 1 ? 'Instrumental / Forceps' : 'Normal / Vaginal';

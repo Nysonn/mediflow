@@ -40,3 +40,5 @@ frontend/node_modules/
 frontend/dist/
 
 cleaned_data_zimbabwe.csv
+
+.venv

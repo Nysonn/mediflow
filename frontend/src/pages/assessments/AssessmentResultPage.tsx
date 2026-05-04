@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
@@ -8,7 +9,6 @@ import { setPageTitle } from '../../store/slices/uiSlice';
 import { patientsApi } from '../../api/patients';
 import { modelXaiApi } from '../../api/modelXai';
 import type { ExplainResponse, ConfidenceResponse } from '../../api/modelXai';
-import { PageHeader } from '../../components/common/PageHeader';
 import { SkeletonCard } from '../../components/common/SkeletonCard';
 import { SkeletonTable } from '../../components/common/SkeletonTable';
 import { SHAPBarChart } from '../../components/charts/SHAPBarChart';
@@ -165,6 +165,11 @@ export const AssessmentResultPage = () => {
   const [populationStats, setPopulationStats] = useState<PopulationStats | null>(null);
   const [reportGenerating, setReportGenerating] = useState(false);
 
+  // Refs for PDF capture
+  const riskBannerRef = useRef<HTMLDivElement>(null);
+  const xaiSectionRef = useRef<HTMLDivElement>(null);
+  const clinicalSectionRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => { dispatch(setPageTitle('Assessment Result')); }, [dispatch]);
 
   useEffect(() => {
@@ -199,6 +204,7 @@ export const AssessmentResultPage = () => {
         hiv_status_num: assessment.hiv_status_num,
         parity_num: assessment.parity_num,
         booked_unbooked: assessment.booked_unbooked,
+        delivery_method_clean_FORCEPS: assessment.delivery_method_clean_forceps,
         delivery_method_clean_LSCS: assessment.delivery_method_clean_lscs,
       };
       const [explain, conf] = await Promise.all([
@@ -241,6 +247,7 @@ export const AssessmentResultPage = () => {
     hiv_status_num: assessment.hiv_status_num,
     parity_num: assessment.parity_num,
     booked_unbooked: assessment.booked_unbooked,
+    delivery_method_clean_forceps: assessment.delivery_method_clean_forceps,
     delivery_method_clean_lscs: assessment.delivery_method_clean_lscs,
   });
 
@@ -258,8 +265,27 @@ export const AssessmentResultPage = () => {
 
   const inputHash = btoa(`${assessment.id}:${assessment.duration_labour_min}:${assessment.hiv_status_num}`).slice(0, 12);
 
-  const handleDownloadReport = () => {
+  const handleDownloadReport = async () => {
     setReportGenerating(true);
+
+    // Helper: capture a DOM element as a base64 PNG, returns null on failure
+    const captureElement = async (el: HTMLElement | null): Promise<string | null> => {
+      if (!el) return null;
+      try {
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+        return canvas.toDataURL('image/png');
+      } catch {
+        return null;
+      }
+    };
+
+    // Capture all three visual sections in parallel
+    const [riskImg, xaiImg, clinicalImg] = await Promise.all([
+      captureElement(riskBannerRef.current),
+      captureElement(xaiSectionRef.current),
+      captureElement(clinicalSectionRef.current),
+    ]);
+
     try {
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageW = doc.internal.pageSize.getWidth();
@@ -291,6 +317,24 @@ export const AssessmentResultPage = () => {
         write(title, 11, true, 74, 109, 140);
       };
 
+      // Helper: embed a captured image spanning the content width
+      const addImage = (dataUrl: string, captionText?: string) => {
+        const imgProps = doc.getImageProperties(dataUrl);
+        const imgH = (imgProps.height * contentW) / imgProps.width;
+        const maxH = 100; // mm — cap very tall captures
+        const drawH = Math.min(imgH, maxH);
+        if (y + drawH > 277) { doc.addPage(); y = margin; }
+        doc.addImage(dataUrl, 'PNG', margin, y, contentW, drawH);
+        y += drawH + 2;
+        if (captionText) {
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'italic');
+          doc.setTextColor(107, 122, 141);
+          doc.text(captionText, margin, y);
+          y += 4;
+        }
+      };
+
       // ── Header bar ──────────────────────────────────────────────────────────
       doc.setFillColor(74, 109, 140);
       doc.rect(0, 0, pageW, 24, 'F');
@@ -310,7 +354,7 @@ export const AssessmentResultPage = () => {
       write(`Age:                ${patient.age} years`);
       write(`Date of Admission:  ${formatDate(patient.date_of_admission)}`);
 
-      // ── Risk result ─────────────────────────────────────────────────────────
+      // ── Risk result (text summary) ───────────────────────────────────────────
       section('RISK ASSESSMENT RESULT');
       write(`Assessed:    ${formatDateTime(assessment.created_at)}`);
       write(`Assessed By: ${assessment.assessed_by_name}`);
@@ -326,13 +370,31 @@ export const AssessmentResultPage = () => {
         );
       }
 
+      // ── Risk gauge + probability breakdown visualisation ─────────────────────
+      if (riskImg) {
+        nl(3);
+        addImage(riskImg, 'Fig 1 — Risk gauge and probability breakdown');
+      }
+
       // ── Clinical input data ──────────────────────────────────────────────────
       section('CLINICAL INPUT DATA');
       write(`Labour Duration:  ${formatMinutesToHours(assessment.duration_labour_min)} (${assessment.duration_labour_min} min)`);
       write(`HIV Status:       ${formatHIVStatus(assessment.hiv_status_num)}`);
       write(`Parity:           ${assessment.parity_num} previous live births`);
       write(`Booking Status:   ${formatBookingStatus(assessment.booked_unbooked)}`);
-      write(`Delivery Method:  ${formatDeliveryMethod(assessment.delivery_method_clean_lscs)}`);
+      write(`Delivery Method:  ${formatDeliveryMethod(assessment.delivery_method_clean_lscs, assessment.delivery_method_clean_forceps)}`);
+
+      // ── Recommendations ──────────────────────────────────────────────────────
+      section('RECOMMENDATIONS');
+      if (isHigh) {
+        write(
+          'HIGH RISK: Ensure active management of the third stage of labour, have uterotonics ready, ' +
+          'establish IV access, ensure blood products are available, and consider consultant review.',
+          10, true
+        );
+      } else {
+        write('LOW RISK: Standard postpartum monitoring protocols apply. Observe for unexpected clinical changes.');
+      }
 
       // ── Clinical decision support notes ─────────────────────────────────────
       section('CLINICAL DECISION SUPPORT NOTES');
@@ -348,23 +410,50 @@ export const AssessmentResultPage = () => {
         });
       }
 
-      // ── Recommendations ──────────────────────────────────────────────────────
-      section('RECOMMENDATIONS');
-      if (isHigh) {
-        write(
-          'HIGH RISK: Ensure active management of the third stage of labour, have uterotonics ready, ' +
-          'establish IV access, ensure blood products are available, and consider consultant review.',
-          10, true
-        );
-      } else {
-        write('LOW RISK: Standard postpartum monitoring protocols apply. Observe for unexpected clinical changes.');
+      // ── Clinical section visualisation (inputs + notes) ──────────────────────
+      if (clinicalImg) {
+        nl(2);
+        addImage(clinicalImg, 'Fig 2 — Clinical input data and decision support notes');
+      }
+
+      // ── XAI Visualisations ───────────────────────────────────────────────────
+      section('CLINICAL EXPLAINABILITY (XAI)');
+      if (explainData) {
+        nl(1);
+        write('SHAP Feature Contributions', 10, true);
+        const sorted = Object.entries(explainData.shap_values).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+        sorted.forEach(([feat, val]) => {
+          const display = FEATURE_DISPLAY[feat] ?? feat;
+          const dir = val >= 0 ? '↑ increases' : '↓ decreases';
+          write(`  ${display}: ${val.toFixed(4)}  (${dir} risk)`);
+        });
+        nl(1);
+      }
+      if (xaiImg) {
+        addImage(xaiImg, 'Fig 3 — XAI analysis: SHAP contributions, population distribution, feature weights, and counterfactual analysis');
+      } else if (!explainData) {
+        write('XAI data unavailable — model service was not reachable at time of report generation.', 9, false, 107, 122, 141);
+      }
+
+      // ── Counterfactual analysis ──────────────────────────────────────────────
+      if (counterfactuals.length > 0) {
+        section('COUNTERFACTUAL ANALYSIS (PATH TO LOWER RISK)');
+        write('Modifiable changes projected to lower predicted severity tier:', 9, false, 107, 122, 141);
+        nl(1);
+        counterfactuals.forEach((cf) => {
+          write(`  ${cf.displayName}: ${cf.currentValue} → ${cf.suggestedTarget}  (${cf.currentTier} → ${cf.projectedTier})`);
+        });
+        write('Note: Statistical projection only — not a clinical prescription.', 8, false, 107, 122, 141);
       }
 
       // ── Audit trail ──────────────────────────────────────────────────────────
       section('AUDIT TRAIL');
-      write(`Model:              ${MODEL_VERSION} — Logistic Regression (5 features)`);
+      write(`Model:              ${MODEL_VERSION} — SVM (6 features)`);
       write(`Session/Input Hash: ${inputHash}`);
       write(`Assessment ID:      ${assessment.id}`);
+      if (confidenceData) {
+        write(`Bootstrap CI:       ${confidenceData.n_bootstrap} iterations`);
+      }
 
       // ── Disclaimer ──────────────────────────────────────────────────────────
       section('DISCLAIMER');
@@ -383,124 +472,305 @@ export const AssessmentResultPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Assessment Result" subtitle={`Patient: ${patient.full_name} — ${patient.patient_id_number}`} />
-      <p className="text-sm text-base-content/50 -mt-4">Assessed: {formatDateTime(assessment.created_at)}</p>
+    <div className="space-y-5 pb-8">
 
-      {/* ═══ ZONE A — Patient Headline Banner ═══ */}
-      <div className="rounded-2xl p-6" style={{ background: severityColours.lightBackground, border: `2px solid ${severityColours.border}`, color: severityColours.border }}>
-        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
-          <div className="w-full lg:w-64 flex-shrink-0">
-            <RiskGauge probability={probability} />
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 1 — Page header with patient context & action buttons
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold leading-tight">Assessment Result</h1>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-sm text-base-content/55">
+            <span className="font-medium text-base-content/80">{patient.full_name}</span>
+            <span>·</span>
+            <span className="font-mono text-xs">{patient.patient_id_number}</span>
+            <span>·</span>
+            <span>Age {patient.age}</span>
+            <span>·</span>
+            <span>Assessed {formatDateTime(assessment.created_at)}</span>
+            <span>·</span>
+            <span>by {assessment.assessed_by_name}</span>
           </div>
-          <div className="flex-1 space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="px-4 py-1.5 rounded-full text-xl font-extrabold tracking-wide" style={{ backgroundColor: severityColours.background, color: severityColours.text }} aria-label={`Severity: ${severityColours.label}`}>
+        </div>
+        <div className="flex flex-wrap gap-2 shrink-0">
+          <button className="btn btn-sm btn-ghost" onClick={() => navigate(`/patients/${id}`)}>← Patient Record</button>
+          <button
+            className="btn btn-sm btn-outline"
+            onClick={handleDownloadReport}
+            disabled={reportGenerating}
+          >
+            {reportGenerating
+              ? <><span className="loading loading-spinner loading-xs" /> Generating…</>
+              : '⬇ PDF Report'}
+          </button>
+          <button className="btn btn-sm btn-primary" onClick={() => navigate(`/patients/${id}/assessments/new`)}>+ New Assessment</button>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 2 — Risk result banner: gauge · verdict · prob breakdown
+      ══════════════════════════════════════════════════════════════ */}
+      <div
+        ref={riskBannerRef}
+        className="rounded-2xl p-6"
+        style={{ background: severityColours.lightBackground, border: `2px solid ${severityColours.border}` }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+
+          {/* Gauge */}
+          <div className="flex justify-center">
+            <div className="w-52">
+              <RiskGauge probability={probability} />
+            </div>
+          </div>
+
+          {/* Risk verdict */}
+          <div className="text-center space-y-2" style={{ color: severityColours.border }}>
+            <div>
+              <span
+                className="inline-block px-5 py-1.5 rounded-full text-lg font-extrabold tracking-wide"
+                style={{ backgroundColor: severityColours.background, color: severityColours.text }}
+                aria-label={`Severity: ${severityColours.label}`}
+              >
                 {severityColours.label}
               </span>
-              <span className="text-3xl font-bold">
-                {formatProbability(probability)}
-                <span className="text-base font-normal ml-2 opacity-70">probability of Severe PPH</span>
-              </span>
             </div>
+            <p className="text-5xl font-extrabold tabular-nums">{formatProbability(probability)}</p>
+            <p className="text-sm font-medium opacity-70">probability of Severe PPH</p>
             {confidenceData && (
-              <p className="text-base font-medium">
-                <span className="font-semibold">{Math.round(confidenceData.risk * 100)}%</span>
-                <span className="opacity-70 ml-1">[95% CI: {Math.round(confidenceData.ci_low * 100)}%–{Math.round(confidenceData.ci_high * 100)}% · n={confidenceData.n_bootstrap} bootstrap iterations]</span>
+              <p className="text-xs font-medium opacity-65">
+                95% CI: {Math.round(confidenceData.ci_low * 100)}%–{Math.round(confidenceData.ci_high * 100)}%
+                &nbsp;·&nbsp;{confidenceData.n_bootstrap} bootstrap iterations
               </p>
             )}
-            {xaiLoading && <p className="text-sm opacity-60">Computing confidence interval…</p>}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm opacity-80">
-              <span><strong>Patient:</strong> {patient.full_name}</span>
-              <span><strong>Age:</strong> {patient.age} years</span>
-              <span><strong>ID:</strong> {patient.patient_id_number}</span>
+            {xaiLoading && !confidenceData && (
+              <p className="text-xs opacity-50 animate-pulse">Computing confidence interval…</p>
+            )}
+          </div>
+
+          {/* Probability breakdown */}
+          <div style={{ color: severityColours.border }}>
+            <p className="text-[10px] font-semibold uppercase tracking-widest opacity-55 mb-3">Probability Breakdown</p>
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="opacity-70">No Severe PPH</span>
+                  <span className="font-bold">{formatProbability(assessment.probability_no_pph)}</span>
+                </div>
+                <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: 'rgba(255,255,255,0.35)' }}>
+                  <div className="h-full rounded-full" style={{ width: `${pctNoPPH}%`, backgroundColor: '#5B8A6F' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="opacity-70">Severe PPH</span>
+                  <span className="font-bold">{formatProbability(probability)}</span>
+                </div>
+                <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: 'rgba(255,255,255,0.35)' }}>
+                  <div className="h-full rounded-full" style={{ width: `${pctSeverePPH}%`, backgroundColor: PPH_COLOURS.severe.background }} />
+                </div>
+              </div>
             </div>
-            <div className="text-xs rounded-lg px-3 py-2 mt-2" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,0,0,0.1)' }}>
-              <strong>Model Transparency:</strong> {MODEL_VERSION} · Logistic Regression (5 features) ·
-              Inference: {formatDateTime(assessment.created_at)} ·{' '}
-              <em>Limitation: Trained on 223 patients from a single Zimbabwean facility. Supplementary tool only — not a replacement for clinical judgement.</em>
+            <p className="text-[10px] opacity-45 mt-3 italic">
+              {MODEL_VERSION} · LR (5 features) · Supplementary tool only
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 3 — Clinical inputs (left) + Recommendation & notes (right)
+      ══════════════════════════════════════════════════════════════ */}
+      <div ref={clinicalSectionRef} className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+        {/* LEFT — Clinical Input Data */}
+        <div className="lg:col-span-2 card bg-base-100 shadow-sm">
+          <div className="card-body p-5">
+            <h2 className="font-bold text-base mb-4">Clinical Input Data</h2>
+
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/40 mb-2">Non-Modifiable Factors</p>
+            <div className="grid grid-cols-2 gap-2 mb-5">
+              {(['hiv_status_num', 'parity_num'] as const).map((feat) => {
+                const flags = ABNORMALITY_FLAGS.filter((f) => f.feature === feat && f.condition(assessmentFeatures[feat]));
+                const loinc = FEATURE_LOINC[feat];
+                return (
+                  <div key={feat} className="rounded-lg bg-base-200 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider font-medium text-base-content/40 mb-0.5 flex items-center gap-1">
+                      {FEATURE_DISPLAY[feat]}
+                      {loinc && (
+                        <span
+                          className="text-[9px] opacity-40 border-b border-dotted cursor-help"
+                          title={`LOINC ${loinc}`}
+                          aria-label={`LOINC code ${loinc}`}
+                        >⁺{loinc}</span>
+                      )}
+                    </p>
+                    <p className="font-semibold text-sm leading-snug">
+                      {feat === 'hiv_status_num'
+                        ? formatHIVStatus(assessment.hiv_status_num)
+                        : `${assessment.parity_num} prev. deliveries`}
+                    </p>
+                    {flags.map((f, i) => <AbnormalityDot key={i} severity={f.severity} note={f.note} />)}
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/40 mb-2">Modifiable Factors</p>
+            <div className="space-y-2">
+              {([
+                { feat: 'duration_labour_min' as const },
+                { feat: 'booked_unbooked' as const },
+                { feat: 'delivery_method_clean_lscs' as const },
+              ]).map(({ feat }) => {
+                const flags = [
+                  ...ABNORMALITY_FLAGS.filter((f) => f.feature === feat && f.condition(assessmentFeatures[feat])),
+                  ...(feat === 'delivery_method_clean_lscs'
+                    ? ABNORMALITY_FLAGS.filter((f) => f.feature === 'delivery_method_clean_forceps' && f.condition(assessment.delivery_method_clean_forceps))
+                    : []),
+                ];
+                const value =
+                  feat === 'duration_labour_min'
+                    ? `${formatMinutesToHours(assessment.duration_labour_min)} (${assessment.duration_labour_min} min)`
+                    : feat === 'booked_unbooked'
+                    ? formatBookingStatus(assessment.booked_unbooked)
+                    : formatDeliveryMethod(assessment.delivery_method_clean_lscs, assessment.delivery_method_clean_forceps);
+                return (
+                  <div key={feat} className="rounded-lg bg-base-200 px-3 py-2">
+                    <p className="text-[10px] uppercase tracking-wider font-medium text-base-content/40 mb-0.5">{FEATURE_DISPLAY[feat]}</p>
+                    <p className="font-semibold text-sm leading-snug">{value}</p>
+                    {flags.map((f, i) => <AbnormalityDot key={i} severity={f.severity} note={f.note} />)}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — Recommendation + Clinical Decision Support */}
+        <div className="lg:col-span-3 space-y-4">
+
+          {/* Recommendation alert */}
+          {isHigh ? (
+            <div className="rounded-xl p-4" style={{ background: '#FFF3F3', border: '2px solid #E57373' }}>
+              <div className="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="shrink-0 h-5 w-5 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="#C62828" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="font-bold" style={{ color: '#C62828' }}>Recommended Actions — HIGH RISK</p>
+                  <p className="text-sm mt-1 text-base-content/80">
+                    Ensure active management of the third stage of labour, have uterotonics ready,
+                    establish IV access, ensure blood products are available, and consider consultant review.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl p-4" style={{ background: '#F0FFF4', border: '2px solid #66BB6A' }}>
+              <div className="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="shrink-0 h-5 w-5 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="#2E7D32" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="font-bold" style={{ color: '#2E7D32' }}>Clinical Note — LOW RISK</p>
+                  <p className="text-sm mt-1 text-base-content/80">
+                    Standard postpartum monitoring protocols apply. Observe for unexpected clinical changes.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Clinical Decision Support Notes */}
+          <div className="card bg-base-100 shadow-sm flex-1">
+            <div className="card-body p-5">
+              <div className="flex items-baseline justify-between mb-3">
+                <h2 className="font-bold text-base">Clinical Decision Support</h2>
+                <span className="text-[10px] text-base-content/30">Ref: WHO/RHR/12.30 · NICE NG121</span>
+              </div>
+              {clinicalNotes.length === 0 ? (
+                <p className="text-sm text-base-content/50 italic">No specific clinical flags identified.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {clinicalNotes.map((note, i) => {
+                    const urgencyColour =
+                      note.urgency === 'high'
+                        ? PPH_COLOURS.severe.background
+                        : note.urgency === 'medium'
+                        ? PPH_COLOURS.moderate.background
+                        : PPH_COLOURS.mild.background;
+                    const urgencyLabel =
+                      note.urgency === 'high' ? 'High' : note.urgency === 'medium' ? 'Medium' : 'Standard';
+                    return (
+                      <li key={i} className="flex gap-2.5 text-sm" aria-label={`${urgencyLabel}: ${note.note}`}>
+                        <span
+                          className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: urgencyColour }}
+                          aria-hidden="true"
+                        />
+                        <span>
+                          <span
+                            className="text-[10px] font-bold uppercase mr-1.5 px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: urgencyColour + '22', color: urgencyColour }}
+                          >{urgencyLabel}</span>
+                          <span className="text-base-content/80">{note.note}</span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ═══ MAIN CONTENT GRID — B + C + D ═══ */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-
-        {/* ZONE B — Input Summary */}
-        <div className="xl:col-span-3 space-y-4">
-          <div className="card bg-base-100 shadow-sm">
-            <div className="card-body p-4">
-              <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-3">Input Data Summary</h3>
-              <div className="mb-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-2">Non-Modifiable Factors</p>
-                {(['hiv_status_num', 'parity_num'] as const).map((feat) => {
-                  const flags = ABNORMALITY_FLAGS.filter((f) => f.feature === feat && f.condition(assessmentFeatures[feat]));
-                  const loinc = FEATURE_LOINC[feat];
-                  return (
-                    <div key={feat} className="py-2 border-b border-base-200 last:border-0">
-                      <p className="text-xs text-base-content/50 flex items-center gap-1">
-                        {FEATURE_DISPLAY[feat]}
-                        {loinc && <span className="text-[10px] opacity-50 cursor-help border-b border-dotted" title={`LOINC ${loinc}`} aria-label={`LOINC code ${loinc}`}>⁺{loinc}</span>}
-                      </p>
-                      <p className="font-semibold text-sm">
-                        {feat === 'hiv_status_num' ? formatHIVStatus(assessment.hiv_status_num) : `${assessment.parity_num} previous deliveries`}
-                      </p>
-                      {flags.map((f, i) => <AbnormalityDot key={i} severity={f.severity} note={f.note} />)}
-                    </div>
-                  );
-                })}
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-2">Modifiable Factors</p>
-                {([
-                  { feat: 'duration_labour_min' },
-                  { feat: 'booked_unbooked' },
-                  { feat: 'delivery_method_clean_lscs' },
-                ] as const).map(({ feat }) => {
-                  const flags = ABNORMALITY_FLAGS.filter((f) => f.feature === feat && f.condition(assessmentFeatures[feat]));
-                  return (
-                    <div key={feat} className="py-2 border-b border-base-200 last:border-0">
-                      <p className="text-xs text-base-content/50">{FEATURE_DISPLAY[feat]}</p>
-                      <p className="font-semibold text-sm">
-                        {feat === 'duration_labour_min' ? `${formatMinutesToHours(assessment.duration_labour_min)} (${assessment.duration_labour_min} min)`
-                          : feat === 'booked_unbooked' ? formatBookingStatus(assessment.booked_unbooked)
-                          : formatDeliveryMethod(assessment.delivery_method_clean_lscs)}
-                      </p>
-                      {flags.map((f, i) => <AbnormalityDot key={i} severity={f.severity} note={f.note} />)}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 4 — XAI Analysis panel with tabs + feature weights
+      ══════════════════════════════════════════════════════════════ */}
+      <div ref={xaiSectionRef} className="card bg-base-100 shadow-sm">
+        <div className="card-body p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h2 className="font-bold text-base">Clinical Explainability (XAI)</h2>
+            {xaiLoading && (
+              <span className="text-xs text-base-content/40 flex items-center gap-1.5">
+                <span className="loading loading-spinner loading-xs" />Loading XAI data…
+              </span>
+            )}
           </div>
-          <div className="card bg-base-100 shadow-sm">
-            <div className="card-body p-4">
-              <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-2">Model Feature Weights</h3>
-              <FeatureImportanceChart deliveryLSCS={assessment.delivery_method_clean_lscs} />
-            </div>
-          </div>
-        </div>
 
-        {/* ZONE C — XAI Tabs */}
-        <div className="xl:col-span-6">
-          <div className="card bg-base-100 shadow-sm h-full">
-            <div className="card-body p-4">
-              <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-3">Clinical Explainability (XAI)</h3>
-              <div className="tabs tabs-boxed mb-4" role="tablist" aria-label="XAI visualisation tabs">
-                {([['shap','SHAP Contributions'],['population','vs. Population'],['counterfactual','Path to Lower Risk']] as const).map(([key, label]) => (
-                  <button key={key} role="tab" aria-selected={xaiTab === key} className={`tab tab-sm ${xaiTab === key ? 'tab-active' : ''}`} onClick={() => setXaiTab(key)}>{label}</button>
+          {xaiError && (
+            <div className="alert alert-warning text-sm mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{xaiError}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+            {/* XAI tab content */}
+            <div className="xl:col-span-2 space-y-4">
+              <div className="tabs tabs-boxed w-fit" role="tablist" aria-label="XAI visualisation tabs">
+                {([['shap', 'SHAP Contributions'], ['population', 'vs. Population'], ['counterfactual', 'Path to Lower Risk']] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    role="tab"
+                    aria-selected={xaiTab === key}
+                    className={`tab tab-sm ${xaiTab === key ? 'tab-active' : ''}`}
+                    onClick={() => setXaiTab(key)}
+                  >{label}</button>
                 ))}
               </div>
-              {xaiError && (
-                <div className="alert alert-warning text-sm mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  <span>{xaiError}</span>
-                </div>
-              )}
+
               {xaiTab === 'shap' && (
                 <div>
-                  <p className="text-xs text-base-content/50 mb-3 italic">SHAP values show how each factor raised or lowered the predicted PPH severity for this specific patient. Computed live on submission.</p>
+                  <p className="text-xs text-base-content/50 mb-3 italic">
+                    SHAP values show how each factor raised or lowered the predicted PPH severity for this specific patient.
+                  </p>
                   {xaiLoading && <div className="skeleton h-64 w-full rounded" />}
                   {!xaiLoading && explainData && (
                     <SHAPBarChart
@@ -510,18 +780,25 @@ export const AssessmentResultPage = () => {
                         hiv_status_num: formatHIVStatus(assessment.hiv_status_num),
                         parity_num: assessment.parity_num,
                         booked_unbooked: formatBookingStatus(assessment.booked_unbooked),
-                        delivery_method_clean_LSCS: formatDeliveryMethod(assessment.delivery_method_clean_lscs),
+                        delivery_method_clean_LSCS: formatDeliveryMethod(assessment.delivery_method_clean_lscs, assessment.delivery_method_clean_forceps),
                       }}
                       computedAt={explainData.computed_at}
                     />
                   )}
-                  {!xaiLoading && !explainData && !xaiError && <p className="text-sm text-base-content/40 italic">SHAP data unavailable — model service may be offline.</p>}
-                  {explainData?.method === 'coefficient_fallback' && <p className="text-xs text-base-content/40 mt-2 italic">Note: Using LR coefficient approximation (SHAP library not installed in model service).</p>}
+                  {!xaiLoading && !explainData && !xaiError && (
+                    <p className="text-sm text-base-content/40 italic">SHAP data unavailable — model service may be offline.</p>
+                  )}
+                  {explainData?.method === 'coefficient_fallback' && (
+                    <p className="text-xs text-base-content/40 mt-2 italic">Note: Using LR coefficient approximation (SHAP library not installed in model service).</p>
+                  )}
                 </div>
               )}
+
               {xaiTab === 'population' && (
                 <div className="space-y-6">
-                  <p className="text-xs text-base-content/50 italic">Box plots show the distribution of each feature across PPH severity tiers in the training population. The diamond (◆) marks this patient's value.</p>
+                  <p className="text-xs text-base-content/50 italic">
+                    Box plots show feature distributions across PPH severity tiers in the training population. The diamond (◆) marks this patient's value.
+                  </p>
                   {populationStats ? (
                     <>
                       <PopDistributionChart feature="duration_labour_min" patientValue={assessment.duration_labour_min} populationStats={populationStats} />
@@ -530,34 +807,42 @@ export const AssessmentResultPage = () => {
                   ) : <div className="skeleton h-64 w-full rounded" />}
                 </div>
               )}
+
               {xaiTab === 'counterfactual' && (
                 <div>
-                  <p className="text-xs text-base-content/50 mb-3 italic">Grid-search analysis showing what changes to modifiable factors would project a lower predicted severity tier. Statistical projection only — not a clinical prescription.</p>
+                  <p className="text-xs text-base-content/50 mb-3 italic">
+                    Modifiable changes that would project a lower predicted severity tier. Statistical projection only — not a clinical prescription.
+                  </p>
                   {severityTier === 'mild' ? (
-                    <div className="alert alert-success text-sm"><span>Patient is already at the lowest predicted severity tier (Mild). No counterfactual changes required.</span></div>
+                    <div className="alert alert-success text-sm">
+                      <span>Patient is already at the lowest predicted severity tier (Mild). No changes required.</span>
+                    </div>
                   ) : counterfactuals.length === 0 ? (
-                    <div className="alert alert-info text-sm"><span>No single-feature change within the population median range produces a tier change. Risk is driven by fixed factors.</span></div>
+                    <div className="alert alert-info text-sm">
+                      <span>No single-feature change within the population median range produces a tier change. Risk is driven by fixed factors.</span>
+                    </div>
                   ) : (
                     <div className="space-y-3">
                       {counterfactuals.map((cf, i) => {
-                        const progressPct = typeof cf.currentValue === 'number' && typeof cf.suggestedTarget === 'number'
-                          ? Math.min(100, Math.abs(((cf.suggestedTarget - cf.currentValue) / (POPULATION_MEDIANS[cf.feature] - cf.currentValue + 0.001)) * 100))
-                          : 50;
+                        const progressPct =
+                          typeof cf.currentValue === 'number' && typeof cf.suggestedTarget === 'number'
+                            ? Math.min(100, Math.abs(((cf.suggestedTarget - cf.currentValue) / (POPULATION_MEDIANS[cf.feature] - cf.currentValue + 0.001)) * 100))
+                            : 50;
                         const targetTierColour = PPH_COLOURS[getSeverityTier(predictProbClient({ ...assessmentFeatures, [cf.feature]: Number(cf.suggestedTarget) }))];
                         return (
                           <div key={i} className="rounded-lg p-3 bg-base-200 border border-base-300">
                             <div className="flex justify-between items-start mb-2">
                               <div>
                                 <p className="font-semibold text-sm">{cf.displayName}</p>
-                                <p className="text-xs text-base-content/60">Current: <strong>{String(cf.currentValue)}</strong> → Suggested: <strong>{String(cf.suggestedTarget)}</strong></p>
+                                <p className="text-xs text-base-content/60">Current: <strong>{String(cf.currentValue)}</strong> → Target: <strong>{String(cf.suggestedTarget)}</strong></p>
                               </div>
-                              <div className="text-right text-xs">
-                                <span className="inline-block px-2 py-0.5 rounded text-white font-semibold" style={{ backgroundColor: severityColours.background }} aria-label={`Current: ${cf.currentTier}`}>{cf.currentTier}</span>
-                                <span className="mx-1">→</span>
-                                <span className="inline-block px-2 py-0.5 rounded text-white font-semibold" style={{ backgroundColor: targetTierColour.background }} aria-label={`Projected: ${cf.projectedTier}`}>{cf.projectedTier}</span>
+                              <div className="flex items-center gap-1 text-xs shrink-0">
+                                <span className="px-2 py-0.5 rounded text-white font-semibold" style={{ backgroundColor: severityColours.background }} aria-label={`Current: ${cf.currentTier}`}>{cf.currentTier}</span>
+                                <span>→</span>
+                                <span className="px-2 py-0.5 rounded text-white font-semibold" style={{ backgroundColor: targetTierColour.background }} aria-label={`Projected: ${cf.projectedTier}`}>{cf.projectedTier}</span>
                               </div>
                             </div>
-                            <div className="w-full rounded-full overflow-hidden" style={{ height: 8, background: '#DDE3EA' }}>
+                            <div className="w-full rounded-full overflow-hidden" style={{ height: 6, background: '#DDE3EA' }}>
                               <div className="h-full rounded-full" style={{ width: `${progressPct}%`, backgroundColor: targetTierColour.background }} role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100} />
                             </div>
                             <p className="text-[11px] text-base-content/40 mt-1">{Math.round(progressPct)}% change toward population median</p>
@@ -568,155 +853,87 @@ export const AssessmentResultPage = () => {
                   )}
                   <div className="mt-4 rounded-lg p-3 bg-base-200 border border-base-300">
                     <p className="text-xs font-semibold uppercase tracking-wide text-base-content/50 mb-2">Non-Modifiable Factors (Fixed)</p>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-xs text-base-content/40">HIV Status</span><p className="font-medium">{formatHIVStatus(assessment.hiv_status_num)}</p></div>
-                      <div><span className="text-xs text-base-content/40">Parity</span><p className="font-medium">{assessment.parity_num} previous deliveries</p></div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-xs text-base-content/40 mb-0.5">HIV Status</p>
+                        <p className="font-medium">{formatHIVStatus(assessment.hiv_status_num)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-base-content/40 mb-0.5">Parity</p>
+                        <p className="font-medium">{assessment.parity_num} previous deliveries</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* ZONE D — Recommendations + Clinical Notes */}
-        <div className="xl:col-span-3 space-y-4">
-          {isHigh ? (
-            <div className="alert alert-warning">
-              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-              <div>
-                <h3 className="font-bold">Recommended Actions</h3>
-                <p className="text-sm mt-1">This patient has been identified as <strong>HIGH RISK</strong> for Severe PPH. Ensure active management of the third stage of labour, have uterotonics ready, establish IV access, ensure blood products are available, and consider consultant review.</p>
+            {/* Feature weights sidebar */}
+            <div className="xl:col-span-1">
+              <div className="rounded-xl bg-base-200 p-4 h-full">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-base-content/50 mb-3">Model Feature Weights</p>
+                <FeatureImportanceChart deliveryLSCS={assessment.delivery_method_clean_lscs} />
               </div>
             </div>
-          ) : (
-            <div className="alert alert-info">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <div>
-                <h3 className="font-bold">Clinical Note</h3>
-                <p className="text-sm mt-1">This patient has been assessed as <strong>LOW RISK</strong> for Severe PPH. Standard postpartum monitoring protocols apply. Observe for unexpected clinical changes.</p>
-              </div>
-            </div>
-          )}
 
-          <div className="card bg-base-100 shadow-sm">
-            <div className="card-body p-4">
-              <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-3">Clinical Decision Support Notes</h3>
-              <p className="text-xs text-base-content/40 mb-3 italic">Static clinical protocol lookup table. Ref: WHO/RHR/12.30 · NICE NG121</p>
-              {clinicalNotes.length === 0 ? (
-                <p className="text-sm text-base-content/50">No specific clinical flags identified.</p>
-              ) : (
-                <ul className="space-y-3">
-                  {clinicalNotes.map((note, i) => {
-                    const urgencyColour = note.urgency === 'high' ? PPH_COLOURS.severe.background : note.urgency === 'medium' ? PPH_COLOURS.moderate.background : PPH_COLOURS.mild.background;
-                    const urgencyLabel = note.urgency === 'high' ? 'High priority' : note.urgency === 'medium' ? 'Medium priority' : 'Standard';
-                    return (
-                      <li key={i} className="flex gap-2 text-sm" aria-label={`${urgencyLabel}: ${note.note}`}>
-                        <span className="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: urgencyColour }} aria-hidden="true" />
-                        <span><span className="text-[10px] font-bold uppercase mr-1" style={{ color: urgencyColour }}>[{urgencyLabel}]</span>{note.note}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </div>
-
-          <div className="card bg-base-100 shadow-sm">
-            <div className="card-body p-4">
-              <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-3">Probability Breakdown</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium text-sm mb-1" style={{ color: '#6B7A8D' }}>No Severe PPH</p>
-                  <p className="text-2xl font-bold" style={{ color: '#5B8A6F' }}>{formatProbability(assessment.probability_no_pph)}</p>
-                  <div className="w-full mt-2 rounded-full overflow-hidden" style={{ height: '6px', background: '#DDE3EA' }}>
-                    <div className="h-full rounded-full" style={{ width: `${pctNoPPH}%`, backgroundColor: '#5B8A6F' }} />
-                  </div>
-                </div>
-                <div>
-                  <p className="font-medium text-sm mb-1" style={{ color: '#6B7A8D' }}>Severe PPH</p>
-                  <p className="text-2xl font-bold" style={{ color: PPH_COLOURS.severe.background }}>{formatProbability(probability)}</p>
-                  <div className="w-full mt-2 rounded-full overflow-hidden" style={{ height: '6px', background: '#DDE3EA' }}>
-                    <div className="h-full rounded-full" style={{ width: `${pctSeverePPH}%`, backgroundColor: PPH_COLOURS.severe.background }} />
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* ═══ INPUT DATA SUMMARY — collapsible ═══ */}
-      <div className="collapse collapse-arrow bg-base-100 shadow-sm">
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 5 — Audit trail (collapsible)
+      ══════════════════════════════════════════════════════════════ */}
+      <div
+        className="collapse collapse-arrow rounded-xl"
+        style={{ background: '#F4F6F8', border: '1px solid #DDE3EA' }}
+      >
         <input type="checkbox" />
-        <div className="collapse-title text-base font-medium">Assessment Input Data — Click to expand</div>
-        <div className="collapse-content">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 pt-2">
-            <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide font-medium">Duration of Labour</p>
-              <p className="font-semibold">{formatMinutesToHours(assessment.duration_labour_min)}</p>
-              <p className="text-xs text-base-content/40">{assessment.duration_labour_min} minutes</p>
-            </div>
-            <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide font-medium">HIV Status</p>
-              <p className="font-semibold">{formatHIVStatus(assessment.hiv_status_num)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide font-medium">Parity</p>
-              <p className="font-semibold">{assessment.parity_num} previous live births</p>
-            </div>
-            <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide font-medium">Booking Status</p>
-              <p className="font-semibold">{formatBookingStatus(assessment.booked_unbooked)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide font-medium">Delivery Method</p>
-              <p className="font-semibold">{formatDeliveryMethod(assessment.delivery_method_clean_lscs)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide font-medium">Assessed By</p>
-              <p className="font-semibold">{assessment.assessed_by_name}</p>
-            </div>
+        <div className="collapse-title text-xs font-semibold uppercase tracking-widest py-3" style={{ color: '#6B7A8D' }}>
+          Data Provenance &amp; Audit Trail
+        </div>
+        <div className="collapse-content text-xs" style={{ color: '#6B7A8D' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-1.5 pb-3">
+            <p><strong>Inference Timestamp:</strong> {formatDateTime(assessment.created_at)}</p>
+            <p><strong>Assessed By:</strong> {assessment.assessed_by_name}</p>
+            <p><strong>Model Version:</strong> {MODEL_VERSION} — Logistic Regression, scikit-learn 1.5.2</p>
+            <p><strong>Assessment ID:</strong> <span className="font-mono">{assessment.id}</span></p>
+            <p><strong>Session / Input Hash:</strong> <span className="font-mono">{inputHash}</span></p>
+            {confidenceData && (
+              <p><strong>Confidence:</strong> 95% CI [{Math.round(confidenceData.ci_low * 100)}%–{Math.round(confidenceData.ci_high * 100)}%] · {confidenceData.n_bootstrap} bootstrap iterations</p>
+            )}
           </div>
-          <p className="text-xs text-base-content/30 mt-4">Assessment ID: {assessment.id}</p>
+          <hr className="mb-2" style={{ borderColor: '#DDE3EA' }} />
+          <p className="italic mb-1">
+            <strong>Clinical Disclaimer:</strong> MediFlow is a supplementary clinical decision-support tool.
+            Predictions are probabilistic estimates derived from 223 patients at Mpilo Central Hospital, Bulawayo, Zimbabwe
+            (DOI: 10.17632/k7z2yywdn5.1). Does not replace clinical judgement. Ref: WHO PPH Prevention Guidelines (WHO/RHR/12.30).
+          </p>
+          <p className="italic">
+            <strong>Privacy Note:</strong> Patient data is processed on-premise and is not transmitted to third-party services.
+            Comply with local data protection regulations at all times.
+          </p>
         </div>
       </div>
 
-      {/* ═══ ZONE E — Audit Trail ═══ */}
-      <div className="rounded-xl p-4 text-xs space-y-1" style={{ background: '#F4F6F8', border: '1px solid #DDE3EA', color: '#6B7A8D' }}>
-        <p className="font-semibold text-[11px] uppercase tracking-widest mb-2" style={{ color: '#1A2535' }}>
-          Data Provenance &amp; Audit Trail
-        </p>
-        <p><strong>Inference Timestamp:</strong> {formatDateTime(assessment.created_at)}</p>
-        <p><strong>Model Version:</strong> {MODEL_VERSION} — Logistic Regression, scikit-learn 1.5.2</p>
-        <p><strong>Session / Input Hash:</strong> {inputHash}</p>
-        <p><strong>Assessed By:</strong> {assessment.assessed_by_name}</p>
-        {confidenceData && <p><strong>Confidence:</strong> 95% CI [{Math.round(confidenceData.ci_low * 100)}%–{Math.round(confidenceData.ci_high * 100)}%] · {confidenceData.n_bootstrap} bootstrap iterations</p>}
-        <hr className="my-2 border-base-300" />
-        <p className="italic"><strong>Clinical Disclaimer:</strong> MediFlow is a supplementary clinical decision-support tool. Predictions are probabilistic estimates derived from a dataset of 223 patients at Mpilo Central Hospital, Bulawayo, Zimbabwe (DOI: 10.17632/k7z2yywdn5.1). This tool does not replace clinical judgement. Reference: WHO PPH Prevention Guidelines (WHO/RHR/12.30).</p>
-        <p className="italic"><strong>Privacy Note:</strong> Patient data is processed on-premise and is not transmitted to third-party services. Comply with local data protection regulations at all times.</p>
-      </div>
-
-      {/* ═══ ACTION BUTTONS ═══ */}
-      <div className="flex flex-wrap gap-3 pb-6">
-        <button className="btn btn-primary" onClick={() => navigate(`/patients/${id}`)}>← Patient Record</button>
+      {/* ══════════════════════════════════════════════════════════════
+          SECTION 6 — Navigation actions
+      ══════════════════════════════════════════════════════════════ */}
+      <div className="flex flex-wrap gap-2 pt-1">
+        <button className="btn btn-primary btn-sm" onClick={() => navigate(`/patients/${id}`)}>← Patient Record</button>
         <button
-          className="btn btn-outline"
+          className="btn btn-outline btn-sm"
           onClick={handleDownloadReport}
           disabled={reportGenerating}
         >
-          {reportGenerating && (
-            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-          )}
-          {reportGenerating ? 'Generating…' : '⬇ Download PDF Report'}
+          {reportGenerating
+            ? <><span className="loading loading-spinner loading-xs" /> Generating…</>
+            : '⬇ Download PDF Report'}
         </button>
-        <button className="btn btn-outline" onClick={() => navigate(`/patients/${id}/assessments/new`)}>Run Another Assessment</button>
-        <button className="btn btn-ghost" onClick={() => navigate(`/patients/${id}/trends`)}>View Temporal Trends</button>
-        <button className="btn btn-ghost" onClick={() => navigate('/patients')}>Back to Patients List</button>
+        <button className="btn btn-outline btn-sm" onClick={() => navigate(`/patients/${id}/assessments/new`)}>+ New Assessment</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/patients/${id}/trends`)}>View Trends</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/patients')}>All Patients</button>
       </div>
+
     </div>
   );
 };
