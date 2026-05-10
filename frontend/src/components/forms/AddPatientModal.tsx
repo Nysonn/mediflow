@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { patientsApi } from '../../api/patients';
 import { useNotification } from '../../hooks/useNotification';
 import { Modal } from '../common/Modal';
-import { formatMinutesToHours } from '../../utils/formatters';
 import type { CreatePatientWithAssessmentInput, ApiError } from '../../types';
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -17,7 +16,7 @@ interface PatientForm {
 }
 
 interface AssessmentForm {
-  duration_labour_min: string;
+  duration_labour_hr: string;
   hiv_status_num: string;
   parity_num: string;
   booked_unbooked: string;
@@ -32,7 +31,7 @@ const INITIAL_PATIENT: PatientForm = {
 };
 
 const INITIAL_ASSESSMENT: AssessmentForm = {
-  duration_labour_min: '',
+  duration_labour_hr: '',
   hiv_status_num: '',
   parity_num: '',
   booked_unbooked: '',
@@ -68,6 +67,25 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [patient, setPatient] = useState<PatientForm>(INITIAL_PATIENT);
   const [assessment, setAssessment] = useState<AssessmentForm>(INITIAL_ASSESSMENT);
+  const [idLocked, setIdLocked] = useState(false);
+
+  const generatePatientId = (): string => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const l1 = chars[Math.floor(Math.random() * chars.length)];
+    const l2 = chars[Math.floor(Math.random() * chars.length)];
+    const digits = String(Math.floor(Math.random() * 9000) + 1000);
+    return `${l1}${l2}${digits}`;
+  };
+
+  const handlePatientIdFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    focusHandler(e);
+    if (!patient.patient_id_number) {
+      const generated = generatePatientId();
+      setPatient((f) => ({ ...f, patient_id_number: generated }));
+      setPatientErrors((fe) => ({ ...fe, patient_id_number: '' }));
+      setIdLocked(true);
+    }
+  };
   const [patientErrors, setPatientErrors] = useState<Record<string, string>>({});
   const [assessmentErrors, setAssessmentErrors] = useState<Record<string, string>>({});
 
@@ -78,6 +96,7 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
       setAssessment(INITIAL_ASSESSMENT);
       setPatientErrors({});
       setAssessmentErrors({});
+      setIdLocked(false);
       mutation.reset();
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -145,9 +164,9 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
 
   const validateAssessment = (): boolean => {
     const errors: Record<string, string> = {};
-    const dur = parseInt(assessment.duration_labour_min, 10);
-    if (!assessment.duration_labour_min) errors.duration_labour_min = 'Required';
-    else if (isNaN(dur) || dur < 1 || dur > 9999) errors.duration_labour_min = 'Must be 1–9999 minutes';
+    const dur = parseFloat(assessment.duration_labour_hr);
+    if (!assessment.duration_labour_hr) errors.duration_labour_hr = 'Required';
+    else if (isNaN(dur) || dur < 0.5 || dur > 24) errors.duration_labour_hr = 'Must be 0.5–24 hours';
     if (assessment.hiv_status_num === '') errors.hiv_status_num = 'Required';
     const parity = parseInt(assessment.parity_num, 10);
     if (assessment.parity_num === '') errors.parity_num = 'Required';
@@ -171,7 +190,7 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
       full_name: patient.full_name.trim(),
       age: parseInt(patient.age, 10),
       date_of_admission: patient.date_of_admission,
-      duration_labour_min: parseInt(assessment.duration_labour_min, 10),
+      duration_labour_min: Math.round(parseFloat(assessment.duration_labour_hr) * 60),
       hiv_status_num: parseInt(assessment.hiv_status_num, 10),
       parity_num: parseInt(assessment.parity_num, 10),
       booked_unbooked: parseInt(assessment.booked_unbooked, 10),
@@ -183,8 +202,8 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
   const pe = (f: string) => patientErrors[f];
   const ae = (f: string) => assessmentErrors[f];
 
-  const durMin = parseInt(assessment.duration_labour_min, 10);
-  const durDisplay = !isNaN(durMin) && durMin > 0 ? formatMinutesToHours(durMin) : null;
+  const durHr = parseFloat(assessment.duration_labour_hr);
+  const durMinEquiv = !isNaN(durHr) && durHr >= 0.5 ? Math.round(durHr * 60) : null;
 
   // ── Step indicator ──────────────────────────────────────────────────
   const StepBar = () => (
@@ -229,16 +248,20 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
           <input
             type="text"
             className={`${inputCls} font-mono uppercase`}
-            style={{ ...inputStyle, ...errStyle(!!pe('patient_id_number')) }}
-            placeholder="e.g. MH-2024-0042"
+            style={{ ...inputStyle, ...errStyle(!!pe('patient_id_number')), ...(idLocked ? { background: '#F0F4F8', cursor: 'default' } : {}) }}
+            placeholder="e.g. RT1234"
             value={patient.patient_id_number}
             onChange={setP('patient_id_number')}
-            onFocus={focusHandler} onBlur={blurHandler}
+            onFocus={handlePatientIdFocus}
+            onBlur={idLocked ? undefined : blurHandler}
+            readOnly={idLocked}
           />
         </div>
         {pe('patient_id_number')
           ? <p className="text-[10px] text-red-500 mt-0.5">{pe('patient_id_number')}</p>
-          : <p className="text-[10px] text-gray-400 mt-0.5">Hospital or clinic assigned ID</p>
+          : idLocked
+          ? <p className="text-[10px] font-semibold mt-0.5" style={{ color: '#2E7D32' }}>Auto-generated ID — locked</p>
+          : <p className="text-[10px] text-gray-400 mt-0.5">Click the field to auto-generate an ID</p>
         }
       </div>
 
@@ -349,24 +372,24 @@ export const AddPatientModal = ({ isOpen, onClose }: Props) => {
       {/* Duration of Labour */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="block text-xs font-semibold text-gray-600">Duration of Labour (minutes) *</label>
-          {durDisplay && (
-            <span className="text-[10px] font-semibold" style={{ color: '#4A6D8C' }}>= {durDisplay}</span>
+          <label className="block text-xs font-semibold text-gray-600">Duration of Labour (hours) *</label>
+          {durMinEquiv && (
+            <span className="text-[10px] font-semibold" style={{ color: '#4A6D8C' }}>= {durMinEquiv} min</span>
           )}
         </div>
         <input
           type="number"
           className="w-full px-3 py-2 rounded-lg text-sm text-gray-800 outline-none transition-all"
-          style={{ ...inputStyle, ...errStyle(!!ae('duration_labour_min')) }}
-          placeholder="e.g. 180"
-          min={1} max={9999}
-          value={assessment.duration_labour_min}
-          onChange={setA('duration_labour_min')}
+          style={{ ...inputStyle, ...errStyle(!!ae('duration_labour_hr')) }}
+          placeholder="e.g. 3.5"
+          step={0.5} min={0.5} max={24}
+          value={assessment.duration_labour_hr}
+          onChange={setA('duration_labour_hr')}
           onFocus={focusHandler} onBlur={blurHandler}
         />
-        {ae('duration_labour_min')
-          ? <p className="text-[10px] text-red-500 mt-0.5">{ae('duration_labour_min')}</p>
-          : <p className="text-[10px] text-gray-400 mt-0.5">Enter total duration in minutes, e.g. 180 = 3 hours</p>
+        {ae('duration_labour_hr')
+          ? <p className="text-[10px] text-red-500 mt-0.5">{ae('duration_labour_hr')}</p>
+          : <p className="text-[10px] text-gray-400 mt-0.5">Enter duration in hours. e.g. 3.5 = 3 hours 30 minutes</p>
         }
       </div>
 

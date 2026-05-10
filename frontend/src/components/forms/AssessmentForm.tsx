@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { patientsApi } from '../../api/patients';
-import { formatMinutesToHours } from '../../utils/formatters';
 import type { ApiError } from '../../types';
 
 interface AssessmentFormProps {
@@ -13,7 +12,7 @@ interface AssessmentFormProps {
 }
 
 interface FormState {
-  duration_labour_min: string;
+  duration_labour_hr: string;
   hiv_status_num: string;
   parity_num: string;
   booked_unbooked: string;
@@ -21,7 +20,7 @@ interface FormState {
 }
 
 const EMPTY: FormState = {
-  duration_labour_min: '',
+  duration_labour_hr: '',
   hiv_status_num: '',
   parity_num: '',
   booked_unbooked: '',
@@ -73,10 +72,10 @@ export const AssessmentForm = ({ patientId, onSuccess }: AssessmentFormProps) =>
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
-    const dur = parseInt(form.duration_labour_min, 10);
-    if (!form.duration_labour_min) errors.duration_labour_min = 'Duration of labour is required';
-    else if (isNaN(dur) || dur < 1 || dur > 9999)
-      errors.duration_labour_min = 'Duration must be between 1 and 9999 minutes';
+    const dur = parseFloat(form.duration_labour_hr);
+    if (!form.duration_labour_hr) errors.duration_labour_hr = 'Duration of labour is required';
+    else if (isNaN(dur) || dur < 0.5 || dur > 24)
+      errors.duration_labour_hr = 'Duration must be between 0.5 and 24 hours';
     if (form.hiv_status_num === '') errors.hiv_status_num = 'HIV status is required';
     const parity = parseInt(form.parity_num, 10);
     if (form.parity_num === '') errors.parity_num = 'Parity is required';
@@ -93,7 +92,7 @@ export const AssessmentForm = ({ patientId, onSuccess }: AssessmentFormProps) =>
     setServerError(undefined);
     if (!validate()) return;
     mutation.mutate({
-      duration_labour_min: parseInt(form.duration_labour_min, 10),
+      duration_labour_min: Math.round(parseFloat(form.duration_labour_hr) * 60),
       hiv_status_num: parseInt(form.hiv_status_num, 10),
       parity_num: parseInt(form.parity_num, 10),
       booked_unbooked: parseInt(form.booked_unbooked, 10),
@@ -102,11 +101,11 @@ export const AssessmentForm = ({ patientId, onSuccess }: AssessmentFormProps) =>
     });
   };
 
-  const durMin = parseInt(form.duration_labour_min, 10);
-  const durDisplay = !isNaN(durMin) && durMin > 0 ? formatMinutesToHours(durMin) : null;
+  const durHr = parseFloat(form.duration_labour_hr);
+  const durMinEquiv = !isNaN(durHr) && durHr >= 0.5 ? Math.round(durHr * 60) : null;
 
   const isUntouched =
-    form.duration_labour_min === '' &&
+    form.duration_labour_hr === '' &&
     form.hiv_status_num === '' &&
     form.parity_num === '' &&
     form.booked_unbooked === '' &&
@@ -128,26 +127,27 @@ export const AssessmentForm = ({ patientId, onSuccess }: AssessmentFormProps) =>
       {/* Field 1 — Duration of Labour */}
       <div className="form-control">
         <label className="label">
-          <span className="label-text font-medium">Duration of Labour (minutes) *</span>
-          {durDisplay && (
-            <span className="label-text-alt text-primary font-semibold">= {durDisplay}</span>
+          <span className="label-text font-medium">Duration of Labour (hours) *</span>
+          {durMinEquiv && (
+            <span className="label-text-alt text-primary font-semibold">= {durMinEquiv} min</span>
           )}
         </label>
         <input
           type="number"
-          className={`input input-bordered ${err('duration_labour_min') ? 'input-error' : ''}`}
-          placeholder="e.g. 180"
-          min={1}
-          max={9999}
-          value={form.duration_labour_min}
-          onChange={setField('duration_labour_min')}
+          className={`input input-bordered ${err('duration_labour_hr') ? 'input-error' : ''}`}
+          placeholder="e.g. 3.5"
+          step={0.5}
+          min={0.5}
+          max={24}
+          value={form.duration_labour_hr}
+          onChange={setField('duration_labour_hr')}
         />
         <label className="label">
-          {err('duration_labour_min') ? (
-            <span className="label-text-alt text-error">{err('duration_labour_min')}</span>
+          {err('duration_labour_hr') ? (
+            <span className="label-text-alt text-error">{err('duration_labour_hr')}</span>
           ) : (
             <span className="label-text-alt text-base-content/50">
-              Enter total duration in minutes. e.g. 180 = 3 hours
+              Enter duration in hours. e.g. 3.5 = 3 hours 30 minutes
             </span>
           )}
         </label>

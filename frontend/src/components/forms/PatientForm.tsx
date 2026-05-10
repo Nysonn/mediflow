@@ -32,6 +32,24 @@ export const PatientForm = ({
     date_of_admission: mode === 'create' ? today() : '',
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [idLocked, setIdLocked] = useState(false);
+
+  const generatePatientId = (): string => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const l1 = chars[Math.floor(Math.random() * chars.length)];
+    const l2 = chars[Math.floor(Math.random() * chars.length)];
+    const digits = String(Math.floor(Math.random() * 9000) + 1000);
+    return `${l1}${l2}${digits}`;
+  };
+
+  const handleIdFocus = () => {
+    if (mode === 'create' && !form.patient_id_number) {
+      const generated = generatePatientId();
+      setForm((f) => ({ ...f, patient_id_number: generated }));
+      setFieldErrors((fe) => ({ ...fe, patient_id_number: '' }));
+      setIdLocked(true);
+    }
+  };
 
   useEffect(() => {
     if (initialValues) {
@@ -102,14 +120,22 @@ export const PatientForm = ({
         </label>
         <input
           type="text"
-          className={`input input-bordered ${err('patient_id_number') ? 'input-error' : ''}`}
-          placeholder="e.g. MH-2024-0042"
+          className={`input input-bordered ${err('patient_id_number') ? 'input-error' : ''} ${idLocked ? 'bg-base-200 cursor-default' : ''}`}
+          placeholder="e.g. RT1234"
           value={form.patient_id_number}
           onChange={set('patient_id_number')}
+          onFocus={handleIdFocus}
+          readOnly={idLocked}
         />
         <label className="label">
           {err('patient_id_number') ? (
             <span className="label-text-alt text-error">{err('patient_id_number')}</span>
+          ) : idLocked ? (
+            <span className="label-text-alt text-success font-medium">Auto-generated ID — locked</span>
+          ) : mode === 'create' ? (
+            <span className="label-text-alt text-base-content/50">
+              Click the field to auto-generate an ID
+            </span>
           ) : (
             <span className="label-text-alt text-base-content/50">
               Hospital or clinic assigned ID number

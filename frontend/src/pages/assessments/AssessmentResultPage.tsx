@@ -378,11 +378,34 @@ export const AssessmentResultPage = () => {
 
       // ── Clinical input data ──────────────────────────────────────────────────
       section('CLINICAL INPUT DATA');
-      write(`Labour Duration:  ${formatMinutesToHours(assessment.duration_labour_min)} (${assessment.duration_labour_min} min)`);
-      write(`HIV Status:       ${formatHIVStatus(assessment.hiv_status_num)}`);
-      write(`Parity:           ${assessment.parity_num} previous live births`);
-      write(`Booking Status:   ${formatBookingStatus(assessment.booked_unbooked)}`);
-      write(`Delivery Method:  ${formatDeliveryMethod(assessment.delivery_method_clean_lscs, assessment.delivery_method_clean_forceps)}`);
+
+      const writeFlags = (flags: typeof ABNORMALITY_FLAGS) => {
+        flags.forEach((f) => {
+          const tag = f.severity === 'red' ? '[CRITICAL]' : '[ELEVATED]';
+          const [fr, fg, fb] = f.severity === 'red' ? [198, 47, 47] : [245, 124, 0];
+          write(`    ${tag} ${f.note}`, 8, false, fr, fg, fb);
+        });
+      };
+
+      write('Non-Modifiable Factors', 9, true);
+      nl(1);
+      write(`  HIV Status:  ${formatHIVStatus(assessment.hiv_status_num)}`);
+      writeFlags(ABNORMALITY_FLAGS.filter((f) => f.feature === 'hiv_status_num' && f.condition(assessmentFeatures.hiv_status_num)));
+      write(`  Parity:      ${assessment.parity_num} previous live births`);
+      writeFlags(ABNORMALITY_FLAGS.filter((f) => f.feature === 'parity_num' && f.condition(assessmentFeatures.parity_num)));
+
+      nl(2);
+      write('Modifiable Factors', 9, true);
+      nl(1);
+      write(`  Labour Duration:  ${formatMinutesToHours(assessment.duration_labour_min)} (${assessment.duration_labour_min} min)`);
+      writeFlags(ABNORMALITY_FLAGS.filter((f) => f.feature === 'duration_labour_min' && f.condition(assessmentFeatures.duration_labour_min)));
+      write(`  Booking Status:   ${formatBookingStatus(assessment.booked_unbooked)}`);
+      writeFlags(ABNORMALITY_FLAGS.filter((f) => f.feature === 'booked_unbooked' && f.condition(assessmentFeatures.booked_unbooked)));
+      write(`  Delivery Method:  ${formatDeliveryMethod(assessment.delivery_method_clean_lscs, assessment.delivery_method_clean_forceps)}`);
+      writeFlags([
+        ...ABNORMALITY_FLAGS.filter((f) => f.feature === 'delivery_method_clean_lscs' && f.condition(assessmentFeatures.delivery_method_clean_lscs)),
+        ...ABNORMALITY_FLAGS.filter((f) => f.feature === 'delivery_method_clean_forceps' && f.condition(assessment.delivery_method_clean_forceps)),
+      ]);
 
       // ── Recommendations ──────────────────────────────────────────────────────
       section('RECOMMENDATIONS');
@@ -436,8 +459,12 @@ export const AssessmentResultPage = () => {
       }
 
       // ── Counterfactual analysis ──────────────────────────────────────────────
-      if (counterfactuals.length > 0) {
-        section('COUNTERFACTUAL ANALYSIS (PATH TO LOWER RISK)');
+      section('COUNTERFACTUAL ANALYSIS (PATH TO LOWER RISK)');
+      if (severityTier === 'mild') {
+        write('Patient is already at the lowest predicted severity tier (Mild). No changes required.', 9, false, 56, 142, 60);
+      } else if (counterfactuals.length === 0) {
+        write('No single-feature change within the population median range produces a tier change. Risk is driven by fixed factors.', 9, false, 107, 122, 141);
+      } else {
         write('Modifiable changes projected to lower predicted severity tier:', 9, false, 107, 122, 141);
         nl(1);
         counterfactuals.forEach((cf) => {
@@ -445,14 +472,23 @@ export const AssessmentResultPage = () => {
         });
         write('Note: Statistical projection only — not a clinical prescription.', 8, false, 107, 122, 141);
       }
+      nl(2);
+      write('Non-Modifiable Factors (Fixed):', 9, true);
+      write(`  HIV Status: ${formatHIVStatus(assessment.hiv_status_num)}`);
+      write(`  Parity:     ${assessment.parity_num} previous deliveries`);
 
       // ── Audit trail ──────────────────────────────────────────────────────────
       section('AUDIT TRAIL');
-      write(`Model:              ${MODEL_VERSION} — SVM (6 features)`);
-      write(`Session/Input Hash: ${inputHash}`);
-      write(`Assessment ID:      ${assessment.id}`);
+      write(`Inference Timestamp: ${formatDateTime(assessment.created_at)}`);
+      write(`Assessed By:         ${assessment.assessed_by_name}`);
+      write(`Model:               ${MODEL_VERSION} — Logistic Regression, scikit-learn 1.5.2`);
+      write(`Session/Input Hash:  ${inputHash}`);
+      write(`Assessment ID:       ${assessment.id}`);
       if (confidenceData) {
-        write(`Bootstrap CI:       ${confidenceData.n_bootstrap} iterations`);
+        write(
+          `Bootstrap CI:        ${confidenceData.n_bootstrap} iterations  ·  ` +
+          `95% CI [${Math.round(confidenceData.ci_low * 100)}%–${Math.round(confidenceData.ci_high * 100)}%]`
+        );
       }
 
       // ── Disclaimer ──────────────────────────────────────────────────────────
@@ -461,7 +497,13 @@ export const AssessmentResultPage = () => {
         'MediFlow is a supplementary clinical decision-support tool. Predictions are probabilistic ' +
         'estimates derived from a dataset of 223 patients at Mpilo Central Hospital, Bulawayo, Zimbabwe ' +
         '(DOI: 10.17632/k7z2yywdn5.1). This tool does not replace clinical judgement. ' +
-        'Patient data is processed on-premise and is not transmitted to third-party services.',
+        'Ref: WHO PPH Prevention Guidelines (WHO/RHR/12.30).',
+        8, false, 107, 122, 141
+      );
+      nl(2);
+      write(
+        'Privacy Note: Patient data is processed on-premise and is not transmitted to third-party services. ' +
+        'Comply with local data protection regulations at all times.',
         8, false, 107, 122, 141
       );
 
