@@ -481,7 +481,7 @@ export const AssessmentResultPage = () => {
       section('AUDIT TRAIL');
       write(`Inference Timestamp: ${formatDateTime(assessment.created_at)}`);
       write(`Assessed By:         ${assessment.assessed_by_name}`);
-      write(`Model:               ${MODEL_VERSION} — Logistic Regression, scikit-learn 1.5.2`);
+      write(`Model:               ${MODEL_VERSION} — SVM (scikit-learn 1.5.2)`);
       write(`Session/Input Hash:  ${inputHash}`);
       write(`Assessment ID:       ${assessment.id}`);
       if (confidenceData) {
@@ -937,7 +937,7 @@ export const AssessmentResultPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-1.5 pb-3">
             <p><strong>Inference Timestamp:</strong> {formatDateTime(assessment.created_at)}</p>
             <p><strong>Assessed By:</strong> {assessment.assessed_by_name}</p>
-            <p><strong>Model Version:</strong> {MODEL_VERSION} — Logistic Regression, scikit-learn 1.5.2</p>
+            <p><strong>Model Version:</strong> {MODEL_VERSION} — SVM (scikit-learn 1.5.2)</p>
             <p><strong>Assessment ID:</strong> <span className="font-mono">{assessment.id}</span></p>
             <p><strong>Session / Input Hash:</strong> <span className="font-mono">{inputHash}</span></p>
             {confidenceData && (

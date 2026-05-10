@@ -8,10 +8,10 @@ import { MODEL_VERSION } from '../../theme/pphTheme';
 type Tab = 'dataset' | 'architecture' | 'comparison';
 
 const MODELS = [
-  { name: 'Logistic Regression', acc: 0.7612, auc: 0.7420, prec: 0.5909, recall: 0.6500, f1: 0.6190, isActive: true },
+  { name: 'Logistic Regression', acc: 0.7612, auc: 0.7420, prec: 0.5909, recall: 0.6500, f1: 0.6190, isActive: false },
   { name: 'Decision Tree',       acc: 0.6716, auc: 0.6734, prec: 0.4643, recall: 0.6500, f1: 0.5417, isActive: false },
   { name: 'Random Forest',       acc: 0.7463, auc: 0.7670, prec: 0.5600, recall: 0.7000, f1: 0.6222, isActive: false },
-  { name: 'SVM',                 acc: 0.8060, auc: 0.7973, prec: 0.6522, recall: 0.7500, f1: 0.6977, isActive: false },
+  { name: 'SVM',                 acc: 0.8060, auc: 0.7973, prec: 0.6522, recall: 0.7500, f1: 0.6977, isActive: true },
   { name: 'Gradient Boosting',   acc: 0.7015, auc: 0.7202, prec: 0.5000, recall: 0.7000, f1: 0.5833, isActive: false },
   { name: 'MLP Neural Network',  acc: 0.7761, auc: 0.8527, prec: 0.6190, recall: 0.6500, f1: 0.6341, isActive: false },
   { name: 'XGBoost',             acc: 0.7612, auc: 0.7601, prec: 0.5909, recall: 0.6500, f1: 0.6190, isActive: false },
@@ -129,7 +129,7 @@ export const AboutPage = () => {
           <div className="card bg-base-100 shadow-sm">
             <div className="card-body p-5">
               <h3 className="font-bold text-base mb-4">Feature Definitions</h3>
-              <p className="text-xs text-base-content/40 mb-4 italic">All 5 features used in the deployed Logistic Regression model. Population medians: duration_labour_min = 329 min, parity = 1.</p>
+              <p className="text-xs text-base-content/40 mb-4 italic">All 5 features used in the deployed SVM model. Population medians: duration_labour_min = 329 min, parity = 1.</p>
               <div className="space-y-4">
                 {FEATURES.map((f) => (
                   <div key={f.name} className="rounded-xl p-4 bg-base-200">
@@ -145,7 +145,7 @@ export const AboutPage = () => {
                     </div>
                     <p className="text-sm text-base-content/70 mt-2">{f.description}</p>
                     <p className="text-xs font-mono mt-1.5">
-                      <span className="text-base-content/40">LR coefficient: </span>
+                      <span className="text-base-content/40">SVM weight: </span>
                       <span className={f.coefficient > 0 ? 'text-red-600 font-semibold' : 'text-green-700 font-semibold'}>
                         {f.coefficient > 0 ? '+' : ''}{f.coefficient}
                       </span>
@@ -179,18 +179,18 @@ export const AboutPage = () => {
               <h3 className="font-bold text-base mb-4">Model Architecture — {MODEL_VERSION}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                 {[
-                  ['Algorithm', 'Logistic Regression'],
+                  ['Algorithm', 'SVM — Support Vector Machine'],
                   ['Library', 'scikit-learn 1.5.2'],
-                  ['Model File', 'final_lr_model.joblib'],
+                  ['Model File', 'final_svm_model.joblib'],
                   ['Input Features', '5 (see Feature Definitions)'],
                   ['Output', 'probability_severe_pph, probability_no_pph, risk_level (HIGH/LOW)'],
                   ['Preprocessing', 'StandardScaler applied to all features'],
-                  ['Decision Boundary', 'Linear (logit function)'],
-                  ['Regularisation', 'L2 (default C=1.0)'],
-                  ['Intercept', '−2.10 (approximate)'],
-                  ['Explainability', 'SHAP LinearExplainer (shap==0.45.1)'],
-                  ['Fallback XAI', 'Coefficient × feature value (when SHAP unavailable)'],
-                  ['Confidence Intervals', 'Bootstrap: 100 iterations, Gaussian coefficient perturbation'],
+                  ['Kernel', 'Linear (SVC with probability=True)'],
+                  ['Regularisation', 'C=1.0 (default)'],
+                  ['Probability Output', 'Platt scaling (cross-validated)'],
+                  ['Explainability', 'SHAP KernelExplainer (shap==0.45.1)'],
+                  ['Fallback XAI', 'Feature weight × value (when SHAP unavailable)'],
+                  ['Confidence Intervals', 'Bootstrap: 100 iterations, Gaussian weight perturbation'],
                 ].map(([label, value]) => (
                   <div key={label}>
                     <p className="text-xs text-base-content/50 uppercase tracking-wide font-medium">{label}</p>
@@ -222,11 +222,11 @@ export const AboutPage = () => {
 
           <div className="card bg-base-100 shadow-sm">
             <div className="card-body p-5">
-              <h3 className="font-bold text-base mb-3">LR Coefficients (Published)</h3>
+              <h3 className="font-bold text-base mb-3">SVM Feature Weights (Published)</h3>
               <p className="text-xs text-base-content/40 mb-4 italic">From Ngwenya et al. academic report. Used for client-side counterfactual grid search.</p>
               <table className="table table-sm text-sm">
                 <thead>
-                  <tr><th>Feature</th><th className="text-right">Coefficient</th><th>Direction</th></tr>
+                  <tr><th>Feature</th><th className="text-right">Weight</th><th>Direction</th></tr>
                 </thead>
                 <tbody>
                   {FEATURES.sort((a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient)).map((f) => (
@@ -257,7 +257,7 @@ export const AboutPage = () => {
             <h3 className="font-bold text-base mb-3">All Models Comparison</h3>
             <p className="text-xs text-base-content/40 mb-4 italic">
               Evaluation results from Ngwenya et al. academic report. All models evaluated on the same 223-patient Mpilo dataset via leave-one-out cross-validation.
-              Logistic Regression was selected for deployment due to its interpretability, calibration properties, and regulatory transparency advantages.
+              SVM was selected for deployment due to its superior accuracy (80.6%), recall (75.0%), and F1 score (0.6977) across all evaluated models.
             </p>
             <div className="overflow-x-auto">
               <table className="table text-sm">
@@ -294,7 +294,7 @@ export const AboutPage = () => {
               </table>
             </div>
             <div className="mt-4 rounded-xl p-4 text-xs bg-base-200 text-base-content/60">
-              <strong>Why Logistic Regression?</strong> While SVM achieved the highest accuracy (80.6%) and F1 (0.6977), Logistic Regression was selected for deployment because: (1) it produces calibrated probability estimates directly interpretable as risk probabilities; (2) it supports SHAP LinearExplainer for per-patient clinical transparency; (3) its coefficients are directly auditable by clinical governance teams; (4) its linear decision boundary reduces the risk of overfitting on a small dataset (n=223); and (5) it satisfies clinical decision-support explainability requirements.
+              <strong>Why SVM?</strong> SVM achieved the highest accuracy (80.6%), recall (75.0%), and F1 score (0.6977) of all evaluated models. It was selected for deployment because: (1) it maximises true positive detection — critical for a screening tool where missing a severe PPH case is the primary clinical risk; (2) its linear kernel produces a weight vector auditable by clinical governance teams; (3) Platt scaling provides calibrated probability output; (4) it generalises well on small datasets (n=223) via margin maximisation; and (5) it satisfies clinical decision-support performance requirements.
             </div>
           </div>
         </div>

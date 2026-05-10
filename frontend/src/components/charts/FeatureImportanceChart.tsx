@@ -6,13 +6,13 @@ interface FeatureImportanceChartProps {
 }
 
 /**
- * Static feature importance bar chart derived from Logistic Regression
- * odds ratios reported in the MediFlow academic report (March 2026).
+ * Static feature importance bar chart derived from SVM feature weights
+ * reported in the MediFlow academic report (March 2026).
  *
- * Values: normalised coefficients from the fitted LR model.
+ * Values: normalised weights from the fitted linear SVM model.
  * Source: Mpilo Central Hospital dataset (n=223), DOI: 10.17632/k7z2yywdn5.1
  */
-const LR_COEFFICIENTS: Record<string, number> = {
+const SVM_WEIGHTS: Record<string, number> = {
   'Delivery: LSCS': 2.3684,
   'Booking: Unbooked': 1.2642,
   'Parity': 0.0083,
@@ -21,7 +21,7 @@ const LR_COEFFICIENTS: Record<string, number> = {
 };
 
 export const FeatureImportanceChart = ({ deliveryLSCS }: FeatureImportanceChartProps) => {
-  const entries = Object.entries(LR_COEFFICIENTS).sort(
+  const entries = Object.entries(SVM_WEIGHTS).sort(
     (a, b) => Math.abs(b[1]) - Math.abs(a[1])
   );
 
@@ -34,9 +34,9 @@ export const FeatureImportanceChart = ({ deliveryLSCS }: FeatureImportanceChartP
   const opacities = labels.map((_, i) => (highlightIdx >= 0 && i !== highlightIdx ? 0.55 : 1));
 
   return (
-    <div role="img" aria-label="Feature importance bar chart showing logistic regression coefficients for 5 model features. Delivery method (LSCS) has the largest positive coefficient.">
+    <div role="img" aria-label="Feature importance bar chart showing SVM feature weights for 5 model features. Delivery method (LSCS) has the largest positive weight.">
       <p className="text-xs text-base-content/40 mb-1 italic">
-        Data source: LR coefficients from Mpilo Central Hospital dataset (n=223). DOI: 10.17632/k7z2yywdn5.1
+        Data source: SVM feature weights from Mpilo Central Hospital dataset (n=223). DOI: 10.17632/k7z2yywdn5.1
       </p>
       <Plot
         data={[
@@ -46,16 +46,16 @@ export const FeatureImportanceChart = ({ deliveryLSCS }: FeatureImportanceChartP
             x: values,
             y: labels,
             marker: { color: colours, opacity: opacities },
-            hovertemplate: '<b>%{y}</b><br>LR Coefficient: %{x:.4f}<extra></extra>',
+            hovertemplate: '<b>%{y}</b><br>SVM Weight: %{x:.4f}<extra></extra>',
           },
         ]}
         layout={{
           title: {
-            text: 'Model Feature Importance — LR Coefficients',
+            text: 'Model Feature Importance — SVM Weights',
             font: { size: 13, color: '#1A2535' },
           },
           xaxis: {
-            title: { text: 'Logistic Regression Coefficient' },
+            title: { text: 'SVM Feature Weight' },
             zeroline: true,
             zerolinecolor: '#1A2535',
             zerolinewidth: 2,

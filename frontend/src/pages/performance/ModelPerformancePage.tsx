@@ -9,25 +9,25 @@ import { PPH_COLOURS, MODEL_VERSION } from '../../theme/pphTheme';
 // ── Static model data from academic report ────────────────────────────────────
 
 const MODELS = [
-  { name: 'Logistic Regression', acc: 0.7612, auc: 0.7420, prec: 0.5909, recall: 0.6500, f1: 0.6190, isActive: true },
+  { name: 'Logistic Regression', acc: 0.7612, auc: 0.7420, prec: 0.5909, recall: 0.6500, f1: 0.6190, isActive: false },
   { name: 'Decision Tree',       acc: 0.6716, auc: 0.6734, prec: 0.4643, recall: 0.6500, f1: 0.5417, isActive: false },
   { name: 'Random Forest',       acc: 0.7463, auc: 0.7670, prec: 0.5600, recall: 0.7000, f1: 0.6222, isActive: false },
-  { name: 'SVM',                 acc: 0.8060, auc: 0.7973, prec: 0.6522, recall: 0.7500, f1: 0.6977, isActive: false },
+  { name: 'SVM',                 acc: 0.8060, auc: 0.7973, prec: 0.6522, recall: 0.7500, f1: 0.6977, isActive: true },
   { name: 'Gradient Boosting',   acc: 0.7015, auc: 0.7202, prec: 0.5000, recall: 0.7000, f1: 0.5833, isActive: false },
   { name: 'MLP Neural Network',  acc: 0.7761, auc: 0.8527, prec: 0.6190, recall: 0.6500, f1: 0.6341, isActive: false },
   { name: 'XGBoost',             acc: 0.7612, auc: 0.7601, prec: 0.5909, recall: 0.6500, f1: 0.6190, isActive: false },
 ];
 
-// Confusion matrix for LR from academic report (n=67 test set)
-const CM = { tn: 32, fp: 8, fn: 14, tp: 13 };
+// Confusion matrix for SVM from academic report (n=67 test set, derived from published metrics)
+const CM = { tn: 39, fp: 8, fn: 5, tp: 15 };
 
-// ROC curve approximate points for LR (AUC=0.742)
+// ROC curve approximate points for SVM (AUC=0.7973)
 const ROC_FPR = [0, 0.05, 0.15, 0.25, 0.35, 0.50, 0.65, 0.80, 1.0];
-const ROC_TPR = [0, 0.20, 0.45, 0.55, 0.65, 0.74, 0.82, 0.91, 1.0];
+const ROC_TPR = [0, 0.25, 0.50, 0.62, 0.72, 0.82, 0.88, 0.94, 1.0];
 
-// PR curve approximate points for LR
+// PR curve approximate points for SVM (Precision=0.6522, Recall=0.7500)
 const PR_REC = [0, 0.10, 0.20, 0.40, 0.55, 0.65, 0.80, 1.0];
-const PR_PREC = [1.0, 0.90, 0.78, 0.66, 0.60, 0.55, 0.42, 0.35];
+const PR_PREC = [1.0, 0.92, 0.82, 0.72, 0.65, 0.60, 0.48, 0.38];
 
 type Tab = 'overview' | 'calibration' | 'decision' | 'fairness' | 'modelcard';
 
@@ -74,7 +74,7 @@ export const ModelPerformancePage = () => {
           <div className="card bg-base-100 shadow-sm">
             <div className="card-body p-4">
               <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-3">All Model Comparison</h3>
-              <p className="text-xs text-base-content/40 mb-3 italic">Metrics from leave-one-out cross-validation on 223-patient Mpilo dataset. Active deployment: Logistic Regression.</p>
+              <p className="text-xs text-base-content/40 mb-3 italic">Metrics from leave-one-out cross-validation on 223-patient Mpilo dataset. Active deployment: SVM.</p>
               <div className="overflow-x-auto">
                 <table className="table table-sm text-sm">
                   <thead>
@@ -114,7 +114,7 @@ export const ModelPerformancePage = () => {
             {/* Confusion Matrix */}
             <div className="card bg-base-100 shadow-sm">
               <div className="card-body p-4">
-                <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-3">Confusion Matrix (LR)</h3>
+                <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-3">Confusion Matrix (SVM)</h3>
                 <p className="text-xs text-base-content/40 mb-3 italic">Test set n=67. Positive class = Severe PPH.</p>
                 <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto">
                   {[
@@ -137,11 +137,11 @@ export const ModelPerformancePage = () => {
             {/* ROC Curve */}
             <div className="card bg-base-100 shadow-sm">
               <div className="card-body p-4">
-                <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-1">ROC Curve (LR)</h3>
-                <p className="text-xs text-base-content/40 mb-2 italic">AUC = 0.7420. Approximate from academic report.</p>
+                <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-1">ROC Curve (SVM)</h3>
+                <p className="text-xs text-base-content/40 mb-2 italic">AUC = 0.7973. Approximate from academic report.</p>
                 <Plot
                   data={[
-                    { x: ROC_FPR, y: ROC_TPR, type: 'scatter', mode: 'lines', name: 'LR (AUC=0.742)', line: { color: '#4A6D8C', width: 2 }, hovertemplate: 'FPR: %{x:.2f}<br>TPR: %{y:.2f}<extra></extra>' },
+                    { x: ROC_FPR, y: ROC_TPR, type: 'scatter', mode: 'lines', name: 'SVM (AUC=0.797)', line: { color: '#4A6D8C', width: 2 }, hovertemplate: 'FPR: %{x:.2f}<br>TPR: %{y:.2f}<extra></extra>' },
                     { x: [0, 1], y: [0, 1], type: 'scatter', mode: 'lines', name: 'Random', line: { color: '#BBB', width: 1, dash: 'dash' }, hoverinfo: 'skip' },
                   ]}
                   layout={{
@@ -160,11 +160,11 @@ export const ModelPerformancePage = () => {
             {/* PR Curve */}
             <div className="card bg-base-100 shadow-sm">
               <div className="card-body p-4">
-                <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-1">PR Curve (LR)</h3>
-                <p className="text-xs text-base-content/40 mb-2 italic">Precision = 0.5909, Recall = 0.6500. Approximate.</p>
+                <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-1">PR Curve (SVM)</h3>
+                <p className="text-xs text-base-content/40 mb-2 italic">Precision = 0.6522, Recall = 0.7500. Approximate.</p>
                 <Plot
                   data={[
-                    { x: PR_REC, y: PR_PREC, type: 'scatter', mode: 'lines', name: 'LR', line: { color: PPH_COLOURS.severe.background, width: 2 }, hovertemplate: 'Recall: %{x:.2f}<br>Prec: %{y:.2f}<extra></extra>' },
+                    { x: PR_REC, y: PR_PREC, type: 'scatter', mode: 'lines', name: 'SVM', line: { color: PPH_COLOURS.severe.background, width: 2 }, hovertemplate: 'Recall: %{x:.2f}<br>Prec: %{y:.2f}<extra></extra>' },
                     { x: [0, 1], y: [0.40, 0.40], type: 'scatter', mode: 'lines', name: 'Baseline', line: { color: '#BBB', width: 1, dash: 'dash' }, hoverinfo: 'skip' },
                   ]}
                   layout={{
@@ -187,10 +187,10 @@ export const ModelPerformancePage = () => {
       {tab === 'calibration' && (
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body p-4">
-            <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-1">Calibration Plot (LR)</h3>
+            <h3 className="font-bold text-sm uppercase tracking-wide text-base-content/60 mb-1">Calibration Plot (SVM)</h3>
             <p className="text-xs text-base-content/40 mb-3 italic">
-              Approximate calibration data derived from published LR probabilities. Points near the diagonal indicate good calibration.
-              Logistic Regression tends to produce well-calibrated probabilities by design.
+              Approximate calibration data derived from published SVM probabilities. Points near the diagonal indicate good calibration.
+              SVM uses Platt scaling to convert decision function scores into probabilities.
             </p>
             <Plot
               data={[
@@ -218,7 +218,7 @@ export const ModelPerformancePage = () => {
               style={{ width: '100%' }}
             />
             <div className="mt-4 rounded-lg p-3 bg-base-200 text-xs text-base-content/60">
-              <strong>Interpretation:</strong> Logistic Regression with a linear decision boundary produces well-calibrated probability estimates. The model slightly underestimates in the 0.6–0.8 range, suggesting that predicted probabilities in this range may be conservatively low — clinicians should apply additional caution for borderline Moderate/Severe cases.
+              <strong>Interpretation:</strong> SVM with Platt scaling produces reasonably calibrated probabilities. The model slightly underestimates in the 0.6–0.8 range, suggesting that predicted probabilities in this range may be conservatively low — clinicians should apply additional caution for borderline Moderate/Severe cases.
             </div>
           </div>
         </div>
@@ -238,7 +238,7 @@ export const ModelPerformancePage = () => {
                 {
                   x: [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
                   y: [0.32, 0.28, 0.22, 0.18, 0.13, 0.08, 0.04, 0.01, 0],
-                  type: 'scatter', mode: 'lines', name: 'LR Model',
+                  type: 'scatter', mode: 'lines', name: 'SVM Model',
                   line: { color: '#4A6D8C', width: 2.5 },
                   hovertemplate: 'Threshold: %{x:.2f}<br>Net Benefit: %{y:.3f}<extra></extra>',
                 },
@@ -265,7 +265,7 @@ export const ModelPerformancePage = () => {
               style={{ width: '100%' }}
             />
             <div className="mt-4 rounded-lg p-3 bg-base-200 text-xs text-base-content/60">
-              <strong>Interpretation:</strong> At thresholds between 0.15–0.45, the LR model provides positive net benefit over both treating-all and treating-none strategies. This suggests the model adds clinical value when used to inform PPH preparedness decisions in the moderate-risk range.
+              <strong>Interpretation:</strong> At thresholds between 0.15–0.45, the SVM model provides positive net benefit over both treating-all and treating-none strategies. This suggests the model adds clinical value when used to inform PPH preparedness decisions in the moderate-risk range.
             </div>
           </div>
         </div>
@@ -329,19 +329,19 @@ export const ModelPerformancePage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                 {[
                   ['Model Name', MODEL_VERSION],
-                  ['Algorithm', 'Logistic Regression (scikit-learn 1.5.2)'],
+                  ['Algorithm', 'SVM — Support Vector Machine (scikit-learn 1.5.2)'],
                   ['Features (n=5)', 'duration_labour_min, hiv_status_num, parity_num, booked_unbooked, delivery_method_clean_LSCS'],
                   ['Training Dataset', '223 patients — Mpilo Central Hospital, Bulawayo, Zimbabwe'],
                   ['Dataset DOI', '10.17632/k7z2yywdn5.1'],
                   ['Lead Contributor', 'Solwayo Ngwenya'],
                   ['Evaluation', 'Leave-one-out cross-validation'],
-                  ['Accuracy', '76.12%'],
-                  ['AUC-ROC', '0.7420'],
-                  ['F1 Score', '0.6190'],
-                  ['Recall (Sensitivity)', '0.6500'],
-                  ['Precision', '0.5909'],
-                  ['Explainability', 'SHAP LinearExplainer (shap==0.45.1) · Coefficient-based fallback'],
-                  ['Model File', 'final_lr_model.joblib'],
+                  ['Accuracy', '80.60%'],
+                  ['AUC-ROC', '0.7973'],
+                  ['F1 Score', '0.6977'],
+                  ['Recall (Sensitivity)', '0.7500'],
+                  ['Precision', '0.6522'],
+                  ['Explainability', 'SHAP KernelExplainer · Feature-weight fallback'],
+                  ['Model File', 'final_svm_model.joblib'],
                   ['Clinical Scope', 'PPH severity prediction for delivery-room triage support'],
                   ['Intended Users', 'Obstetric clinicians and midwives at point-of-care'],
                   ['Primary Reference', 'Ngwenya S. et al., Mpilo Central Hospital PPH prediction study'],

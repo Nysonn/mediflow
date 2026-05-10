@@ -15,13 +15,15 @@ interface FormState {
   confirm_password: string;
 }
 
+const TEMP_PASSWORD = 'MediFlow@2026!';
+
 const INITIAL: FormState = {
   full_name: '',
   email: '',
   phone_number: '',
   role: '',
-  password: '',
-  confirm_password: '',
+  password: TEMP_PASSWORD,
+  confirm_password: TEMP_PASSWORD,
 };
 
 const passwordStrength = (pw: string) => {
